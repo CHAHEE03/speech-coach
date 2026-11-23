@@ -1,0 +1,23 @@
+[workspace]
+resolver = "3"
+# The CHIMERA engine and its browser bindings, copied unchanged from
+# https://github.com/jamesondh/chimera-vocal-synth (MIT). Keep them unchanged so updates can be copied in.
+members = ["crates/chimera", "crates/chimera-wasm"]
+
+[workspace.package]
+version = "0.2.0"
+edition = "2024"
+license = "MIT"
+
+[profile.release]
+opt-level = 3
+codegen-units = 1
+lto = "fat"
+panic = "abort"
+debug = false
+
+[profile.dev]
+opt-level = 1
+
+[profile.test]
+opt-level = 3
