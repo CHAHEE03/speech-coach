@@ -20,6 +20,8 @@ export const ILLUSTRATION = {
   tongue: "#f0918a",
   tongueLine: "#b5554f",
   lips: "#e8a19d",
+  /** the upper lip, a shade darker than the lower (it catches less light) */
+  lipsUpper: "#d68b87",
   lipsLine: "#a9605c",
   velum: "#f4c08f",
   velumLine: "#b98446",

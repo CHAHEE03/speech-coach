@@ -13,7 +13,7 @@ import { t } from "../i18n.ts";
 import { ILLUSTRATION as C } from "../render/illustration.ts";
 import { useStore } from "../store.ts";
 import { useCanvasLoop } from "../useCanvas.ts";
-import { frontShape } from "../front.ts";
+import { frontShape, lipShapes, type P2 } from "../front.ts";
 import { BurstEnvelope } from "../burst.ts";
 
 const clamp = (x: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, x));
@@ -70,29 +70,57 @@ export function FrontView() {
     // the groove from the nose to the lip
     ctx.beginPath();
     ctx.moveTo(X(-0.35), Y(noseY - 0.35));
-    ctx.lineTo(X(-0.3), Y(s.upperEdge + 0.75));
+    ctx.lineTo(X(-0.3), Y(s.upperEdge + 0.5));
     ctx.moveTo(X(0.35), Y(noseY - 0.35));
-    ctx.lineTo(X(0.3), Y(s.upperEdge + 0.75));
+    ctx.lineTo(X(0.3), Y(s.upperEdge + 0.5));
     ctx.strokeStyle = "rgba(140, 129, 120, 0.5)";
     ctx.lineWidth = 1;
     ctx.stroke();
 
-    // the lips: one rounded shape around the opening, fuller when pushed out
-    const lipsTop = s.upperEdge + 0.75 + 0.25 * s.prot, lipsBottom = s.lowerEdge - 0.9 - 0.25 * s.prot;
-    ctx.beginPath();
-    ctx.ellipse(X(0), Y((lipsTop + lipsBottom) / 2), (s.lipsW / 2) * k, ((lipsTop - lipsBottom) / 2) * k, 0, 0, Math.PI * 2);
+    // the lips (lipShapes): lower-lip colour over both, the upper lip darker, a soft shine on the lower
+    const L = lipShapes(s);
+    const path = (pts: P2[]) => {
+      ctx.beginPath();
+      pts.forEach(([x, y], i) => (i ? ctx.lineTo(X(x), Y(y)) : ctx.moveTo(X(x), Y(y))));
+      ctx.closePath();
+    };
+    ctx.lineJoin = "round";
+    path(L.outer);
     ctx.fillStyle = C.lips;
     ctx.fill();
+    path(L.upper);
+    ctx.fillStyle = C.lipsUpper;
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(X(0), Y(L.botL + 0.3 + 0.12 * s.prot), 0.32 * L.half * k, 0.12 * k, 0, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(255, 255, 255, 0.28)";
+    ctx.fill();
+    // pursed lips crease: short upright lines across both lips
+    const pursed = Math.min(1, Math.max(0, (s.prot - 0.35) / 0.4)) * (1 - s.spread);
+    if (pursed > 0.05) {
+      ctx.strokeStyle = C.lipsLine;
+      ctx.globalAlpha = 0.55 * pursed;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      for (const f of [-0.62, -0.3, 0.3, 0.62]) {
+        const x = f * L.half;
+        ctx.moveTo(X(x), Y(L.topU - 0.08));
+        ctx.lineTo(X(x * 0.92), Y(L.topU - 0.3));
+        ctx.moveTo(X(x), Y(L.botL + 0.08));
+        ctx.lineTo(X(x * 0.92), Y(L.botL + 0.34));
+      }
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
+    path(L.outer);
     ctx.strokeStyle = C.lipsLine;
     ctx.lineWidth = 1.5;
     ctx.stroke();
 
     // the opening, with what shows through it: the mouth's dark inside, the tongue, the teeth
-    if (s.open > 0.02 && s.openW > 0.05) {
-      const oy = (s.upperEdge + s.lowerEdge) / 2;
+    if (L.opening) {
       ctx.save();
-      ctx.beginPath();
-      ctx.ellipse(X(0), Y(oy), (s.openW / 2) * k, (s.open / 2) * k, 0, 0, Math.PI * 2);
+      path(L.opening);
       ctx.fillStyle = "#4a2329";
       ctx.fill();
       ctx.clip();
@@ -121,20 +149,21 @@ export function FrontView() {
         tooth(x * 0.92, s.lowerTeeth, false);
       }
       ctx.restore();
-      ctx.beginPath();
-      ctx.ellipse(X(0), Y(oy), (s.openW / 2) * k, (s.open / 2) * k, 0, 0, Math.PI * 2);
+      path(L.opening);
       ctx.strokeStyle = C.lipsLine;
       ctx.lineWidth = 1.5;
       ctx.stroke();
-    } else {
-      // closed lips: the line where they meet
-      ctx.beginPath();
-      ctx.moveTo(X(-s.lipsW / 2 + 0.15), Y(s.upperEdge));
-      ctx.quadraticCurveTo(X(0), Y(s.upperEdge - 0.12), X(s.lipsW / 2 - 0.15), Y(s.upperEdge));
-      ctx.strokeStyle = C.lipsLine;
-      ctx.lineWidth = 1.6;
-      ctx.stroke();
     }
+    // where the lips meet, from each corner in to the opening (or right across when closed)
+    const reach = L.opening ? s.openW / 2 : 0;
+    ctx.beginPath();
+    ctx.moveTo(X(-L.half), Y(L.cornerY));
+    ctx.quadraticCurveTo(X(-(L.half + reach) / 2), Y(L.cornerY - (L.opening ? 0 : 0.05)), X(-reach), Y(L.cornerY - (L.opening ? 0 : 0.06)));
+    ctx.moveTo(X(L.half), Y(L.cornerY));
+    ctx.quadraticCurveTo(X((L.half + reach) / 2), Y(L.cornerY - (L.opening ? 0 : 0.05)), X(reach), Y(L.cornerY - (L.opening ? 0 : 0.06)));
+    ctx.strokeStyle = C.lipsLine;
+    ctx.lineWidth = 1.6;
+    ctx.stroke();
 
     // air out of the mouth, coming at the viewer: rings spreading from the lips, as many and as bold
     // as the airflow at the lips (a held vowel ~130 cm³/s: faint; an aspirated ㅋ ㅍ ~1000: strong)
