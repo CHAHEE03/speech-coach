@@ -67,6 +67,19 @@ export class WasmVoice {
     const orAreas = new Float64Array(this.x.memory.buffer, p + 8 * (16 + nArtic + nPh), nOr).slice();
     return { f0: head[3], voicing: head[4], orAreas };
   }
+  /**
+   * The mean airflow (cm³/s, smoothed over ~30 ms) at the lips and at the soft palate's port, and the
+   * lungs' pressure, now. Telemetry layout: crates/chimera/src/voice/human_voice.rs `write_flat`.
+   */
+  airflow(): { lips: number; throat: number; pLung: number; velumPort: number } {
+    const p = this.x.engine_telemetry(this.h);
+    const head = new Float64Array(this.x.memory.buffer, p, 16);
+    const [nArtic, nPh, nOr] = [head[11], head[12], head[13]];
+    const n = nPh + nOr;
+    // after the header: artic, phAreas, orAreas, pressureRms (n), then flow (n)
+    const flow = new Float64Array(this.x.memory.buffer, p + 8 * (16 + nArtic + n + n), n);
+    return { lips: flow[n - 1], throat: flow[nPh - 1], pLung: head[5], velumPort: head[2] };
+  }
   /** The gesture score (times on the voice clock). */
   score(): Gesture[] {
     this.x.engine_score_json(this.h);
