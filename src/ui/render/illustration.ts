@@ -20,6 +20,8 @@ export const ILLUSTRATION = {
   tongue: "#f0918a",
   tongueLine: "#b5554f",
   lips: "#e8a19d",
+  /** the epiglottis, a cartilage flap: lighter than the head */
+  epiglottis: "#f6ece2",
   /** the hard palate's shelf, a little darker than the head so it reads as a part */
   palate: "#e0d2c3",
   /** the upper lip, a shade darker than the lower (it catches less light) */
@@ -122,10 +124,19 @@ export function drawIllustration(ctx: CanvasRenderingContext2D, G: Profile, f: H
   // the airway's walls: the back of the throat, and the front of the throat
   shape(ctx, P, G.outerWall, null, C.headLine, 1.2, false);
   shape(ctx, P, f.inner, null, C.headLine, 1, false);
-  // the windpipe below the vocal folds
+  // the windpipe below the vocal folds, its cartilage rings faint
   for (const tr of G.trachea) shape(ctx, P, tr, null, C.headLine, 1.2, false);
-  shape(ctx, P, f.epiglottis.slice(0, 3), null, C.headLine, 2, false);
-  for (const fo of G.folds) shape(ctx, P, fo, C.folds, C.lipsLine, 1);
+  ctx.globalAlpha = 0.45;
+  for (const r of G.rings) shape(ctx, P, r, null, C.headLine, 1);
+  // the lower jaw's edge under the skin, faint: the chin and floor of the mouth read as bone and tissue
+  shape(ctx, P, G.jawLower, null, C.headLine, 1.2, false);
+  ctx.globalAlpha = 1;
+  // the epiglottis: a leaf-shaped flap behind the tongue's root (the engine's three points: base,
+  // tip, front), rounded
+  if (f.epiglottis.length >= 3) shape(ctx, P, soft(f.epiglottis.slice(0, 3), 3), C.epiglottis, C.headLine, 1.2, true, true);
+  // the vocal folds, half again as big as the engine's wedges so they read at this size
+  const g = f.glottis;
+  for (const fo of G.folds) shape(ctx, P, fo.map((p) => ({ x: g.x + (p.x - g.x) * 1.5, y: g.y + (p.y - g.y) * 1.5 })), C.folds, C.lipsLine, 1.2);
 
   // the nostril's wing on the side of the nose
   const nose = G.nasal.reduce((b, p) => (p.x > b.x ? p : b), G.nasal[0]);
@@ -143,8 +154,11 @@ export function drawIllustration(ctx: CanvasRenderingContext2D, G: Profile, f: H
   shape(ctx, P, soft(f.velum, 2), C.velum, C.velumLine, 1.5, true, true);
   shape(ctx, P, soft(f.upperTeeth, 2), C.teeth, C.teethLine, 1, true, true);
   shape(ctx, P, soft(G.lowerTeeth, 2), C.teeth, C.teethLine, 1, true, true);
-  shape(ctx, P, f.tongue, C.tongue, C.tongueLine, 1.8);
-  shape(ctx, P, soft(bulge(f.upperLip)), C.lips, C.lipsLine, 1.5, true, true);
+  // the tongue, its outline eased once so the root curves into the floor of the mouth instead of
+  // meeting it in a point (one pass keeps the tip where the engine puts it for ㄷ ㄴ ㄹ)
+  shape(ctx, P, soft(f.tongue, 1), C.tongue, C.tongueLine, 1.8, true, true);
+  // lips as in the front view: the upper a shade darker than the lower
+  shape(ctx, P, soft(bulge(f.upperLip)), C.lipsUpper, C.lipsLine, 1.5, true, true);
   shape(ctx, P, soft(bulge(f.lowerLip)), C.lips, C.lipsLine, 1.5, true, true);
 
   ctx.restore();
