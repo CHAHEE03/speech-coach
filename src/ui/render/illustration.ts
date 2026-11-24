@@ -112,14 +112,58 @@ export function drawIllustration(ctx: CanvasRenderingContext2D, G: Profile, f: H
   ctx.restore();
 }
 
-/**
- * Air through the nose: while the soft palate is open (`amount` 0…1, from the port's area) a dashed
- * blue stream rises behind it, runs along the nasal cavity and leaves the nose, moving with `clock`.
- * shortcut: the engine doesn't send the nasal branch's flow to the page, so the stream's strength is
- * the port's opening alone; read it from the worklet if the nose's flow is ever needed exactly.
- */
-export function drawNasalFlow(ctx: CanvasRenderingContext2D, G: Profile, f: HumanFrame, P: (p: Vec) => Pt, scale: number, amount: number, clock: number): void {
-  if (amount <= 0.05 || G.nasal.length < 3 || f.velum.length < 2) return;
+/** Normalized distance from the velum port to the nostrils selects a telemetry section. */
+export function nasalFlowAt(flow: Float32Array | undefined, s: number): number {
+  if (!flow?.length) return 0;
+  const value = flow[Math.round(Math.max(0, Math.min(1, s)) * (flow.length - 1))];
+  return Number.isFinite(value) ? Math.max(0, value) : 0;
+}
+
+// Nasals peak near 150 cm³/s, well below an aspirated oral burst; ignore tiny residual flow.
+const nasalAmount = (flow: number): number => flow > 5 ? Math.min(1, flow / 200) : 0;
+
+/** Per-view animation state, in body cm so resizing cannot leave trails across the face. */
+export class NasalAirflow {
+  readonly particles = Array.from({ length: 70 }, (_, i) => ({ s: (i * 0.618034) % 1, u: (i * 0.754878) % 1 * 2 - 1, amount: 0 }));
+  puffs: { x: number; y: number; vx: number; vy: number; r: number; life: number }[] = [];
+  private puffDebt = 0;
+
+  update(flow: Float32Array | undefined, dt: number, length: number): void {
+    dt = Math.max(0, Math.min(0.05, dt));
+    for (const p of this.particles) {
+      const amount = nasalAmount(nasalFlowAt(flow, p.s));
+      if (amount) p.s = (p.s + (1.5 + 5 * amount) * dt / Math.max(0.01, length)) % 1;
+      p.amount = nasalAmount(nasalFlowAt(flow, p.s));
+    }
+    const amount = nasalAmount(nasalFlowAt(flow, 1));
+    // puffs already out drift and fade like the lips' do; a closed port only stops new ones
+    this.puffs = this.puffs.filter((p) => {
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+      p.r += 0.8 * dt;
+      p.life -= 1.5 * dt;
+      return p.life > 0;
+    });
+    if (!amount) {
+      // no fractional emission carried over into the next nasal
+      this.puffDebt = 0;
+      return;
+    }
+    this.puffDebt += dt * 45 * amount;
+    while (this.puffDebt >= 1 && this.puffs.length < 140) {
+      this.puffDebt -= 1;
+      const speed = 2.5 + 10 * amount;
+      this.puffs.push({ x: 0, y: (Math.random() - 0.5) * 0.2, vx: speed, vy: -speed * 0.6 / 1.1 + (Math.random() - 0.5) * 1.4, r: 0.1 + 0.28 * amount, life: 1 });
+    }
+  }
+}
+
+/** Streaks sample the nasal tube's own flow; only the nostrils drive the outgoing puffs and tag. */
+export function drawNasalFlow(ctx: CanvasRenderingContext2D, G: Profile, f: HumanFrame, P: (p: Vec) => Pt, scale: number, flow: Float32Array | undefined, dt: number, air: NasalAirflow): void {
+  if (G.nasal.length < 3 || f.velum.length < 2 || !G.outerWall.length) {
+    air.update(undefined, dt, 1);
+    return;
+  }
   const back = G.nasal.reduce((b, p) => (p.x < b.x ? p : b));
   const front = G.nasal.reduce((b, p) => (p.x > b.x ? p : b));
   const centre = mid(G.nasal);
@@ -127,23 +171,61 @@ export function drawNasalFlow(ctx: CanvasRenderingContext2D, G: Profile, f: Huma
   const wall = G.outerWall.reduce((b, p) => (Math.abs(p.y - vel.y) < Math.abs(b.y - vel.y) ? p : b), G.outerWall[0]);
   // the port: between the soft palate and the back of the throat
   const port = { x: (vel.x + wall.x) / 2, y: vel.y };
-  const path = chaikin([port, { x: back.x + 0.4, y: back.y + 0.1 }, { x: centre.x, y: centre.y - 0.15 }, front, { x: front.x + 1.1, y: front.y - 0.6 }].map(P), 3);
+  let path: Pt[] = [port, { x: back.x + 0.4, y: back.y + 0.1 }, { x: centre.x, y: centre.y - 0.15 }, front, { x: front.x + 1.1, y: front.y - 0.6 }].map((p) => [p.x, p.y]);
+  // This is an open airway: the tissue helper closes polygons back to their first point.
+  for (let k = 0; k < 3; k++) {
+    const smooth: Pt[] = [path[0]];
+    for (let i = 1; i < path.length; i++) {
+      const a = path[i - 1], b = path[i];
+      smooth.push([a[0] * 0.75 + b[0] * 0.25, a[1] * 0.75 + b[1] * 0.25], [a[0] * 0.25 + b[0] * 0.75, a[1] * 0.25 + b[1] * 0.75]);
+    }
+    path = [...smooth, path[path.length - 1]];
+  }
+  const distances = [0];
+  for (let i = 1; i < path.length; i++) distances.push(distances[i - 1] + Math.hypot(path[i][0] - path[i - 1][0], path[i][1] - path[i - 1][1]));
+  const length = distances[distances.length - 1];
+  const point = (s: number, u: number): Pt => {
+    const d = Math.max(0, Math.min(1, s)) * length;
+    let i = 1;
+    while (i < path.length - 1 && distances[i] < d) i++;
+    const a = path[i - 1], b = path[i], span = Math.max(1e-6, distances[i] - distances[i - 1]);
+    const along = (d - distances[i - 1]) / span, offset = u * 0.22;
+    return P({ x: a[0] + (b[0] - a[0]) * along - (b[1] - a[1]) / span * offset, y: a[1] + (b[1] - a[1]) * along + (b[0] - a[0]) / span * offset });
+  };
+  air.update(flow, dt, length);
   ctx.save();
   ctx.globalCompositeOperation = "source-over";
-  ctx.beginPath();
-  path.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)));
   ctx.strokeStyle = C.flow;
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
-  ctx.lineWidth = 1.5 + 2.5 * amount;
-  ctx.globalAlpha = 0.35 + 0.55 * amount;
-  ctx.setLineDash([0.5 * scale, 0.45 * scale]);
-  ctx.lineDashOffset = -clock * 3 * scale;
-  ctx.stroke();
+  for (let i = 0; i < air.particles.length; i++) {
+    const p = air.particles[i];
+    if (i / air.particles.length >= p.amount) continue;
+    const [x, y] = point(p.s, p.u);
+    const [px, py] = point(p.s - (0.08 + 0.18 * p.amount) / Math.max(0.01, length), p.u);
+    const band = p.amount < 0.2 ? 0 : p.amount < 0.55 ? 1 : 2;
+    ctx.lineWidth = [1.4, 2.6, 4.2][band];
+    ctx.globalAlpha = [0.45, 0.7, 0.9][band];
+    ctx.beginPath();
+    ctx.moveTo(px, py);
+    ctx.lineTo(x, y);
+    ctx.stroke();
+  }
+  ctx.lineWidth = 1.6;
+  for (const puff of air.puffs) {
+    const [x, y] = P({ x: front.x + puff.x, y: front.y + puff.y });
+    ctx.globalAlpha = 0.85 * puff.life;
+    ctx.beginPath();
+    ctx.arc(x, y, puff.r * scale, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+  // Above the nose, clear of the cavity's own name; a port opening alone is not airflow.
+  if (nasalFlowAt(flow, 1) > 30) {
+    ctx.globalAlpha = 1;
+    const [tx, ty] = P({ x: front.x + 0.2, y: front.y + 2.1 });
+    tag(ctx, t("Air through the nose"), tx, ty, Math.max(12, Math.min(16, 0.55 * scale)));
+  }
   ctx.restore();
-  // above the nose, clear of the cavity's own name
-  const [tx, ty] = P({ x: front.x + 0.2, y: front.y + 2.1 });
-  tag(ctx, t("Air through the nose"), tx, ty, Math.max(12, Math.min(16, 0.55 * scale)));
 }
 
 /** A part's name: dark text on a white halo, readable on the drawing and on the page. */
