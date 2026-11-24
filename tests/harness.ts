@@ -7,6 +7,7 @@ import { readFileSync } from "node:fs";
 import { initChimera } from "../src/wasm/chimera.ts";
 import { writeGestures, fromUtf8 } from "../src/wasm/wire.ts";
 import type { Gesture } from "../src/wasm/types.ts";
+import { decodeTelemetry, TELE_HEADER, TELE_LABELS, telemetryLength } from "../src/worklet/telemetry.ts";
 
 export const WASM_PATH = fileURLToPath(new URL("../src/wasm/chimera.wasm", import.meta.url));
 const bytes = readFileSync(WASM_PATH);
@@ -62,23 +63,22 @@ export class WasmVoice {
   /** f0, voicing and the oral tube's areas now (resets the telemetry's RMS measurements). */
   state(): { f0: number; voicing: number; orAreas: Float64Array } {
     const p = this.x.engine_telemetry(this.h);
-    const head = new Float64Array(this.x.memory.buffer, p, 16);
+    const head = new Float64Array(this.x.memory.buffer, p, TELE_HEADER);
     const [nArtic, nPh, nOr] = [head[11], head[12], head[13]];
-    const orAreas = new Float64Array(this.x.memory.buffer, p + 8 * (16 + nArtic + nPh), nOr).slice();
+    const orAreas = new Float64Array(this.x.memory.buffer, p + 8 * (TELE_HEADER + nArtic + nPh), nOr).slice();
     return { f0: head[3], voicing: head[4], orAreas };
   }
   /**
-   * The mean airflow (cm³/s, smoothed over ~30 ms) at the lips and at the soft palate's port, and the
-   * lungs' pressure, now. Telemetry layout: crates/chimera/src/voice/human_voice.rs `write_flat`.
+   * The mean airflow (cm³/s, smoothed over ~30 ms) at the lips, at the end of the throat, and out of
+   * the nostrils, the lungs' pressure and the soft palate's port, now. The block is decoded as the
+   * worklet decodes it (src/worklet/telemetry.ts).
    */
-  airflow(): { lips: number; throat: number; pLung: number; velumPort: number } {
+  airflow(): { lips: number; throat: number; nose: number; pLung: number; velumPort: number } {
     const p = this.x.engine_telemetry(this.h);
-    const head = new Float64Array(this.x.memory.buffer, p, 16);
-    const [nArtic, nPh, nOr] = [head[11], head[12], head[13]];
-    const n = nPh + nOr;
-    // after the header: artic, phAreas, orAreas, pressureRms (n), then flow (n)
-    const flow = new Float64Array(this.x.memory.buffer, p + 8 * (16 + nArtic + n + n), n);
-    return { lips: flow[n - 1], throat: flow[nPh - 1], pLung: head[5], velumPort: head[2] };
+    const head = new Float64Array(this.x.memory.buffer, p, TELE_HEADER);
+    const block = new Float64Array(this.x.memory.buffer, p, telemetryLength(head));
+    const { t, nPh } = decodeTelemetry(block, new Uint8Array(TELE_LABELS));
+    return { lips: t.flow[t.flow.length - 1], throat: t.flow[nPh - 1], nose: t.nasalFlow[t.nasalFlow.length - 1] ?? 0, pLung: t.pLung, velumPort: t.velumPort };
   }
   /** The gesture score (times on the voice clock). */
   score(): Gesture[] {

@@ -140,6 +140,8 @@ export interface VoiceTelemetry {
   velumPort: number;
   glottalArea: Float32Array;
   glottalFlow: Float32Array;
+  /** smoothed mean flow (cm³/s) per nasal-tube section, velum port (first) → nostrils (last) */
+  nasalFlow: Float32Array;
   f0: number;
   voicing: number;
   pLung: number;

@@ -127,9 +127,10 @@ const SCOPE_LEN: usize = 4096;
 
 /// Scalars at the head of the flat telemetry block, in order: phLen, orLen, velumPort, f0, voicing,
 /// pLung, outRms, noiseLevel, noiseNode, gate, clock, then the array lengths nArtic, nPh, nOr,
-/// nScope, nActive. The arrays follow: artic, phAreas, orAreas, pressureRms (nPh+nOr),
-/// flow (nPh+nOr), glottalArea (nScope), glottalFlow (nScope).
-pub const TELE_HEADER: usize = 16;
+/// nScope, nActive, nNa. The arrays follow: artic, phAreas, orAreas, pressureRms (nPh+nOr),
+/// flow (nPh+nOr), glottalArea (nScope), glottalFlow (nScope), nasalFlow (nNa).
+/// (Speech Coach: nNa and nasalFlow added after CHIMERA, to draw the air through the nose.)
+pub const TELE_HEADER: usize = 17;
 /// Size of the active-label area: up to 4 × (length byte, 24 bytes).
 pub const TELE_LABELS: usize = 4 * 25;
 
@@ -147,6 +148,8 @@ pub struct VoiceTelemetry {
     pub velum_port: f64,
     pub glottal_area: Vec<f32>,
     pub glottal_flow: Vec<f32>,
+    /// smoothed mean flow (cm³/s) at each section of the nasal tube, velum port → nostrils
+    pub nasal_flow: Vec<f32>,
     pub f0: f64,
     pub voicing: f64,
     pub p_lung: f64,
@@ -167,9 +170,9 @@ impl VoiceTelemetry {
         let t = self;
         block.clear();
         block.extend_from_slice(&[t.ph_len, t.or_len, t.velum_port, t.f0, t.voicing, t.p_lung, t.out_rms, t.noise_level, t.noise_node as f64, t.gate, t.clock]);
-        block.extend_from_slice(&[t.artic.len() as f64, t.ph_areas.len() as f64, t.or_areas.len() as f64, t.glottal_area.len() as f64, t.active.len() as f64]);
+        block.extend_from_slice(&[t.artic.len() as f64, t.ph_areas.len() as f64, t.or_areas.len() as f64, t.glottal_area.len() as f64, t.active.len() as f64, t.nasal_flow.len() as f64]);
         debug_assert_eq!(block.len(), TELE_HEADER);
-        for arr in [&t.artic, &t.ph_areas, &t.or_areas, &t.pressure_rms, &t.flow, &t.glottal_area, &t.glottal_flow] {
+        for arr in [&t.artic, &t.ph_areas, &t.or_areas, &t.pressure_rms, &t.flow, &t.glottal_area, &t.glottal_flow, &t.nasal_flow] {
             block.extend(arr.iter().map(|x| *x as f64));
         }
         for (i, l) in t.active.iter().enumerate() {
@@ -192,8 +195,10 @@ impl VoiceTelemetry {
         room(&mut self.flow, n_tract);
         room(&mut self.glottal_area, SCOPE_POINTS);
         room(&mut self.glottal_flow, SCOPE_POINTS);
+        // the nasal tube has fewer sections than throat and mouth together
+        room(&mut self.nasal_flow, n_tract);
         room(&mut self.active, 4);
-        room(block, TELE_HEADER + N_ARTIC + 4 * n_tract + 2 * SCOPE_POINTS);
+        room(block, TELE_HEADER + N_ARTIC + 5 * n_tract + 2 * SCOPE_POINTS);
     }
 }
 
@@ -230,6 +235,8 @@ pub struct HumanVoice {
     rms_acc: Vec<f64>,
     rms_count: u32,
     flow_sm: Vec<f64>,
+    /// smoothed mean flow per nasal-tube section, like `flow_sm` (for drawing the air through the nose)
+    nasal_sm: Vec<f64>,
     scope_area: Vec<f32>,
     scope_flow: Vec<f32>,
     scope_pos: usize,
@@ -272,6 +279,7 @@ impl HumanVoice {
         let fs = fs_out * m as f64;
         let airway = HumanAirway::new(fs, body);
         let n_tract = airway.n_ph + airway.n_or;
+        let n_na = airway.nasal.n;
         let mut v = HumanVoice {
             fs_out,
             m,
@@ -298,6 +306,7 @@ impl HumanVoice {
             rms_acc: vec![0.0; n_tract],
             rms_count: 0,
             flow_sm: vec![0.0; n_tract],
+            nasal_sm: vec![0.0; n_na],
             scope_area: vec![0.0; SCOPE_LEN],
             scope_flow: vec![0.0; SCOPE_LEN],
             scope_pos: 0,
@@ -597,6 +606,11 @@ impl HumanVoice {
             self.flow_sm[k] += a * (self.airway.net.u[br] - self.flow_sm[k]);
             crate::airway::network::tiny(&mut self.flow_sm[k]);
         }
+        for k in 0..self.nasal_sm.len() {
+            let br = self.airway.branch_of(self.airway.nasal, k as isize);
+            self.nasal_sm[k] += a * (self.airway.net.u[br] - self.nasal_sm[k]);
+            crate::airway::network::tiny(&mut self.nasal_sm[k]);
+        }
     }
 
     /// Contact constraint: articulators cannot travel into the palate. Beyond `max_penetration` of
@@ -638,7 +652,7 @@ impl HumanVoice {
         use crate::airway::network::is_denormal;
         let own = [self.gate, self.dc_x, self.dc_y, self.lim_env, self.p_lung_now, self.lung_flow];
         let artic = ArticKey::ALL.iter().filter(|k| is_denormal(self.artic.x.get(**k))).count() + self.artic.v.iter().filter(|v| is_denormal(**v)).count();
-        self.airway.net.denormal_states() + self.glottis.denormal_states() + own.iter().filter(|x| is_denormal(**x)).count() + self.flow_sm.iter().filter(|x| is_denormal(**x)).count() + artic
+        self.airway.net.denormal_states() + self.glottis.denormal_states() + own.iter().filter(|x| is_denormal(**x)).count() + self.flow_sm.iter().filter(|x| is_denormal(**x)).count() + self.nasal_sm.iter().filter(|x| is_denormal(**x)).count() + artic
     }
 
     /// Fill a telemetry snapshot and reset the accumulators.
@@ -690,6 +704,8 @@ impl HumanVoice {
         out.or_len = self.airway.or_len;
         out.flow.clear();
         out.flow.extend(self.flow_sm.iter().map(|x| *x as f32));
+        out.nasal_flow.clear();
+        out.nasal_flow.extend(self.nasal_sm.iter().map(|x| *x as f32));
         out.velum_port = self.airway.frame.as_ref().map_or(0.0, |f| f.velum_port);
         out.f0 = self.glottis.f0_now;
         out.voicing = self.glottis.voicing;
