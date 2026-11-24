@@ -9,8 +9,7 @@ import { blendLog, sameBody, type BodyMix } from "../body.ts";
 import { useModel } from "../useModel.ts";
 import { VoiceModel } from "../analysis.ts";
 import { TEXT, V } from "../colors.ts";
-import { beamPts, handle, ipaGlyph, label, LABEL_MIN, type Pt, seg } from "../render/vector.ts";
-import { nearestVowel } from "./AnatomyView.tsx";
+import { beamPts, handle, label, LABEL_MIN, type Pt, seg } from "../render/vector.ts";
 
 /**
  * Korean monophthongs [F1, F2] (Hz) for adult men and women, Seoul speech.
@@ -25,6 +24,8 @@ const KOREAN: { v: string; male: [number, number]; female: [number, number] }[] 
   { v: "ㅜ", male: [370, 980], female: [420, 1100] },
   { v: "ㅡ", male: [410, 1490], female: [450, 1690] },
 ];
+
+const DRAWINGS: Record<string, string> = { "ㅣ": "i", "ㅏ": "a", "ㅜ": "u" };
 
 /** The Korean targets for this body, blended like the rest of the map. */
 function koreanTargets(b: BodyMix) {
@@ -64,7 +65,9 @@ export function MicButton() {
  */
 export function VowelMap() {
   const model = useModel();
+  const [selected, setSelected] = useState<string | null>(null);
   const dragging = useRef(false);
+  const targetPress = useRef<{ x: number; y: number } | null>(null);
   const range = () => {
     const b = useStore.getState().body;
     const at = (male: number, female: number, child: number) => blendLog(b, { male, female, child });
@@ -131,12 +134,7 @@ export function VowelMap() {
     const a = tele ? VoiceModel.articFromArray(tele.t.artic) : st.artic;
     const fm = m.transfer(a).formants;
     const live = fm.length >= 2 ? toXY(fm[0], fm[1], w, h) : null;
-    const near = fm.length >= 2 ? nearestVowel(m, fm[0], fm[1]) : "";
-    for (const v of m.vowels) {
-      if (v.ipa === near && live) continue;
-      const p = toXY(v.F1, v.F2, w, h);
-      ipaGlyph(ctx, p.x, p.y + 5, v.ipa, 15, TEXT.secondary);
-    }
+    // the Korean targets name the map now: CHIMERA's (English) IPA vowels would sit on top of them
     if (live) {
       // where the tongue has been: a trail of the last 1.5 s, fading with age
       const now = performance.now();
@@ -148,7 +146,10 @@ export function VowelMap() {
         seg(ctx, p0.x, p0.y, p1.x, p1.y, V.green, 1.2, { alpha: 0.7 * (1 - (now - tr[i].t) / 1500) });
       }
       handle(ctx, live.x, live.y, V.green, 8);
-      ipaGlyph(ctx, live.x + 20, live.y - 8, near, 17, V.green);
+    }
+    for (const target of koreanTargets(st.body)) {
+      const p = toXY(target.F1, target.F2, w, h);
+      label(ctx, target.v, p.x, p.y + 6, { size: 24, weight: "m", color: target.v === selected ? V.amber : TEXT.secondary, align: "center" });
     }
   });
 
@@ -157,24 +158,70 @@ export function VowelMap() {
     if (!m) return;
     const r = (e.currentTarget as HTMLCanvasElement).getBoundingClientRect();
     const { F1, F2 } = fromXY(e.clientX - r.left, e.clientY - r.top, r.width, r.height);
+    if (!mic.on) setSelected(null);
     useStore.getState().setArtic(m.articForFormants(F1, F2), true);
   };
 
+  const selectTarget = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    const m = model.current;
+    if (mic.on || !m) return false;
+    const r = e.currentTarget.getBoundingClientRect();
+    let closest = null;
+    let best = 28;
+    // Pick the closest letter when touch areas overlap, in the same CSS pixels as the canvas.
+    for (const target of koreanTargets(useStore.getState().body)) {
+      const p = toXY(target.F1, target.F2, r.width, r.height);
+      const d = Math.hypot(e.clientX - r.left - p.x, e.clientY - r.top - p.y);
+      if (d <= best) [best, closest] = [d, target];
+    }
+    if (!closest) return false;
+    useStore.getState().setArtic(m.articForFormants(closest.F1, closest.F2), true);
+    setSelected(closest.v);
+    targetPress.current = { x: e.clientX, y: e.clientY };
+    return true;
+  };
+  const endDrag = () => {
+    dragging.current = false;
+    targetPress.current = null;
+  };
+  const file = selected ? DRAWINGS[selected] : undefined;
+
   return (
-    <canvas
-      ref={ref}
-      className="vowel-map"
-      onPointerDown={(e) => {
-        dragging.current = true;
-        (e.target as Element).setPointerCapture(e.pointerId);
-        apply(e);
-      }}
-      onPointerMove={(e) => dragging.current && apply(e)}
-      onPointerUp={() => (dragging.current = false)}
-      onPointerCancel={() => (dragging.current = false)}
-      aria-label="Vowel map. Drag to morph between vowels."
-      role="slider"
-      aria-valuetext="vowel position"
-    />
+    <>
+      <div className="vowel-map-area">
+        <canvas
+          ref={ref}
+          className="vowel-map"
+          onPointerDown={(e) => {
+            dragging.current = true;
+            targetPress.current = null;
+            e.currentTarget.setPointerCapture(e.pointerId);
+            if (!selectTarget(e)) apply(e);
+          }}
+          onPointerMove={(e) => {
+            if (!dragging.current) return;
+            const press = targetPress.current;
+            // A little finger movement should not undo a tap; a deliberate drag still morphs.
+            if (!mic.on && press && Math.hypot(e.clientX - press.x, e.clientY - press.y) < 6) return;
+            targetPress.current = null;
+            apply(e);
+          }}
+          onPointerUp={endDrag}
+          onPointerCancel={endDrag}
+          onLostPointerCapture={endDrag}
+          aria-label={t("Vowel map. Tap a vowel or drag to morph between vowels.")}
+          role="slider"
+          aria-valuetext={selected ?? t("Vowel position")}
+        />
+      </div>
+      <figure className="ref-figure vowel-reference">
+        <div className="ref-crop">{file && <img src={`/sagittal/${file}.svg`} alt={`${t("Textbook drawing")}: ${selected}`} />}</div>
+        <figcaption aria-live="polite">
+          <strong>{selected ? `${selected} · ${t("Textbook drawing")}` : t("Textbook drawing")}</strong>
+          <span>{!selected ? t("Tap a vowel to see its shape") : file ? t("Compare it with the moving head") : t("No drawing for this sound yet")}</span>
+          <small>{t("Wright & McCloy, CC0")}</small>
+        </figcaption>
+      </figure>
+    </>
   );
 }

@@ -272,6 +272,34 @@ button {
   cursor: crosshair;
 }
 
+.s-vowels > .screen-body {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Keep a usable map above the drawing, even when the side column has to scroll. */
+.vowel-map-area {
+  position: relative;
+  flex: 1 0 240px;
+  min-height: 240px;
+}
+
+.vowel-reference {
+  flex: none;
+  font-size: 14px;
+}
+
+.vowel-reference .ref-crop {
+  width: 119px;
+  height: 133px;
+}
+
+.vowel-reference .ref-crop img {
+  width: 196px;
+  left: -77px;
+  top: -66.5px;
+}
+
 /* buttons: big enough to hit on a tablet (44 px) */
 .chip,
 .segmented button {
