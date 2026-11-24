@@ -29,6 +29,11 @@ export const ILLUSTRATION = {
   /** airflow streaks and the noise of a hiss */
   flow: "#2f86d6",
   noise: "#5b6b78",
+  /** solid overlays must keep their contrast against the white airway */
+  pressure: ["#b58b20", "#dc701b", "#a51d24"] as const,
+  grid: "#92999f",
+  caliper: "#20262b",
+  halo: "#ffffff",
 };
 
 const C = ILLUSTRATION;

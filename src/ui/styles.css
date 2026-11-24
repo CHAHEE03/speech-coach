@@ -300,6 +300,12 @@ button {
   top: -66.5px;
 }
 
+/* the head's view toggles look small, but each one's whole label is a 44 px target */
+.view-toggles > .toggle {
+  min-width: 44px;
+  min-height: 44px;
+}
+
 /* buttons: big enough to hit on a tablet (44 px) */
 .chip,
 .segmented button {
