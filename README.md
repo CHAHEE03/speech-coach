@@ -9,9 +9,10 @@ against Korean targets, so feedback comes through the eyes instead of the ears.
 
 ## What's here
 
-- **Mouth and tongue**: a live cross-section of the vocal tract (drag the tongue, lips, jaw, soft
-  palate), or a 3D head to turn and see from the front; sound pressure, airflow, measurements and a grid
-  can be shown on it.
+- **Mouth and tongue**: a live cross-section of the vocal tract, drawn like a textbook illustration
+  with the parts named (drag the tongue, lips, jaw, soft palate); CHIMERA's glowing-line look is a
+  toggle (Neon), and a 3D head turns to show the front. Sound pressure, airflow, measurements and a
+  grid can be shown on it.
 - **Vowels**: an F1/F2 map with the Korean vowels ㅣ ㅏ ㅓ ㅗ ㅜ ㅡ. Press **Mic** and say a vowel:
   your voice shows as an amber point, and the nearest target lights up.
 - **Speak**: type Korean (or English, or IPA) and watch the mouth say it, slowed down if you like,

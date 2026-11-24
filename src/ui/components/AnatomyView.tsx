@@ -1,6 +1,6 @@
 import { t } from "../i18n.ts";
 import { useEffect, useRef, useState } from "react";
-import { AnatomyRenderer, type FaceView, type HandleId, type Slot } from "../render/anatomy.ts";
+import { AnatomyRenderer, ILLUSTRATION, type FaceView, type HandleId, type Slot } from "../render/anatomy.ts";
 import { Glow } from "../render/vector.ts";
 import { engine } from "../../audio/AudioEngine.ts";
 import { sameBody } from "../body.ts";
@@ -107,13 +107,14 @@ export function AnatomyView(props: { slots?: SlotsFn; info?: InfoFn; showFormant
         const clean = false;
         ctx.setTransform(1, 0, 0, 1, 0, 0);
         ctx.globalCompositeOperation = "source-over";
-        ctx.fillStyle = "#000";
+        ctx.fillStyle = st.view.illustration ? ILLUSTRATION.page : "#000";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
         const view = clean ? { ...st.view, calipers: false, grid: false } : st.view;
         r.draw(ctx, m, f, a, tele, view, { hover: hoverRef.current, drag: dragRef.current?.id ?? null, dt, formants: formantsRef.current && !clean ? formants : [], slots: clean ? [] : slotsRef.current(m, a, f, formants, tele), info: clean ? [] : info.map((s) => s.toUpperCase()) });
         overlayRef.current?.(ctx, r, m, f, a, { w, h, dt });
-        glow.apply(canvas, ctx, dpr);
+        // the bloom suits glowing lines; on filled shapes it only blurs them
+        if (!st.view.illustration) glow.apply(canvas, ctx, dpr);
       }
       raf = requestAnimationFrame(loop);
     };

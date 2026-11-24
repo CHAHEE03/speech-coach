@@ -39,6 +39,10 @@ const KO: Record<string, string> = {
   "sound could not start": "소리를 켜지 못했어요",
   language: "언어",
   practice: "연습",
+  neon: "네온",
+  names: "이름",
+  "nasal cavity": "코안",
+  pharynx: "인두",
   spectrogram: "스펙트로그램",
   // Speak
   "preparing…": "준비 중…",

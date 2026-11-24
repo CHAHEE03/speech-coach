@@ -18,6 +18,9 @@ import { beam, beamPts, chaikin, dot, handle, label, ring, seg, type Pt } from "
 import { buildProfile, Gaze, jawFn, VIEW, type Profile } from "./profile.ts";
 import { drawReadouts, type Slot } from "./readouts.ts";
 import { Expression } from "./expression.ts";
+import { drawIllustration, drawPartNames, ILLUSTRATION } from "./illustration.ts";
+
+export { ILLUSTRATION };
 
 export type { Slot } from "./readouts.ts";
 
@@ -57,6 +60,10 @@ export interface ViewFlags {
   particles: boolean;
   grid: boolean;
   calipers: boolean;
+  /** the 2D head as a filled textbook illustration instead of glowing outlines */
+  illustration?: boolean;
+  /** in the illustration: the parts' names */
+  labels?: boolean;
 }
 
 interface Particle {
@@ -247,6 +254,20 @@ export class AnatomyRenderer {
     const G = this.geometry(model, f, a);
     const pts = (v: Vec[]) => v.map((p) => this.P(p));
     const line = (v: Vec[], color: string, w: number, o: { alpha?: number; hot?: boolean; close?: boolean } = {}) => beamPts(ctx, pts(v), color, w, o);
+
+    if (view.illustration) {
+      const bulge = puffProfile(f, model.tract.scale, this.face.puff);
+      drawIllustration(ctx, G, f, (p) => this.P(p), this.scale, (v) => (bulge ? v.map(bulge) : v));
+      if (view.pressure && tele) this.drawPressure(ctx, model, f, tele);
+      else if (view.grid) for (const gs of f.grid) seg(ctx, this.X(gs.inner), this.Y(gs.inner), this.X(gs.outer), this.Y(gs.outer), V.blueDim, 0.9, { alpha: 0.7 });
+      if (view.particles && tele) this.drawParticles(ctx, model, f, tele, opts.dt);
+      if (tele) this.drawTurbulence(ctx, model, f, tele);
+      if (view.labels) drawPartNames(ctx, G, f, (p) => this.P(p), this.scale);
+      if (view.calipers) this.drawCalipers(ctx, f);
+      this.drawHandles(ctx, model, f, a, opts.hover, opts.drag);
+      this.drawReadouts(ctx, opts.formants, opts.info, opts.slots);
+      return;
+    }
 
     // deep structures, dim blue
     line(G.inset, V.blueDim, 0.9, { alpha: 0.9 });

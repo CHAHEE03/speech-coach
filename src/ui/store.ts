@@ -14,6 +14,10 @@ export interface ViewOptions {
   grid: boolean;
   calipers: boolean;
   threeD: boolean;
+  /** the 2D head as a filled illustration (else CHIMERA's glowing outlines) */
+  illustration: boolean;
+  /** the illustration names its parts */
+  labels: boolean;
 }
 
 interface State {
@@ -67,7 +71,7 @@ export const useStore = create<State>((set, get) => ({
   tipFree: true,
   volume: 0.8,
   hold: false,
-  view: { pressure: false, particles: false, grid: false, calipers: false, threeD: false },
+  view: { pressure: false, particles: false, grid: false, calipers: false, threeD: false, illustration: true, labels: true },
   start: () => {
     if (get().started) return Promise.resolve();
     if (startPromise) return startPromise;
