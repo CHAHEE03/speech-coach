@@ -346,7 +346,7 @@ export function SpeakRight() {
           {inPlugin && <Lines />}
         </div>
       </Screen>
-      <Screen className="s-air" title="Air from the mouth" sub="Each word starts with a puff too; a strong second peak is ㅋ ㅌ ㅍ ㅊ">
+      <Screen className="s-air" title="Air from the mouth and nose" sub="Each word starts with a puff too; a strong second peak is ㅋ ㅌ ㅍ ㅊ">
         <AirflowGraph />
       </Screen>
       <Screen className="s-score" title="Gestural score">

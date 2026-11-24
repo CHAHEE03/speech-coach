@@ -2,8 +2,8 @@
  * The mouth from the front, drawn from the same articulation that moves the side view: the lips'
  * opening (lipAp, cm), their spread or rounding (lipWidth 0 round … 1 spread) and protrusion
  * (lipProt), the gap between the front teeth (jaw, cm at the incisors), and the tongue's tip
- * (ttY: high for ㄴ ㄷ ㄹ). When the soft palate is open and air is flowing, puffs leave the
- * nostrils. A mirror for the learner: copy the shape.
+ * (ttY: high for ㄴ ㄷ ㄹ). Puffs follow the measured airflow leaving the nostrils.
+ * A mirror for the learner: copy the shape.
  */
 import { useRef } from "react";
 import { engine } from "../../audio/AudioEngine.ts";
@@ -13,16 +13,16 @@ import { t } from "../i18n.ts";
 import { ILLUSTRATION as C } from "../render/illustration.ts";
 import { useStore } from "../store.ts";
 import { useCanvasLoop } from "../useCanvas.ts";
-import { useModel } from "../useModel.ts";
 import { frontShape } from "../front.ts";
 
 const clamp = (x: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, x));
 
 export function FrontView() {
-  const model = useModel();
   const clockRef = useRef(0);
   /** the air leaving the mouth, eased (0 … 1) */
   const mouthAir = useRef(0);
+  /** the air leaving the nostrils, eased (0 … 1) */
+  const noseAir = useRef(0);
   const ref = useCanvasLoop(({ ctx, w, h, dt }) => {
     const clock = (clockRef.current += dt);
     ctx.clearRect(0, 0, w, h);
@@ -31,9 +31,6 @@ export function FrontView() {
     const st = useStore.getState();
     const tele = engine.latest && sameBody(engine.latest.body, st.body) ? engine.latest : null;
     const a = tele ? VoiceModel.articFromArray(tele.t.artic) : st.artic;
-    const m = model.current;
-    const port = tele ? tele.t.velumPort : m ? m.frame(a).velumPort : 0;
-    const breathing = !!tele && tele.t.gate > 0.5 && tele.t.pLung > 1;
     const s = frontShape(a);
 
     // fit the lower face (about 12 × 11 cm) into the screen
@@ -156,8 +153,11 @@ export function FrontView() {
       ctx.restore();
     }
 
-    // air through the nose: puffs from the nostrils while the soft palate is open and air flows
-    const nasal = breathing ? clamp(port / 0.25, 0, 1) : 0;
+    // Nasal consonants reach ~150 cm³/s: make them clear, with the same quick rise and soft fade as the mouth.
+    const noseFlow = tele ? Math.max(0, tele.t.nasalFlow[tele.t.nasalFlow.length - 1] ?? 0) : 0;
+    const noseTarget = clamp(noseFlow / 200, 0, 1);
+    noseAir.current += (noseTarget - noseAir.current) * Math.min(1, dt * (noseTarget > noseAir.current ? 14 : 5));
+    const nasal = noseAir.current;
     if (nasal > 0.05) {
       ctx.save();
       ctx.strokeStyle = C.flow;
@@ -176,6 +176,8 @@ export function FrontView() {
         }
       }
       ctx.restore();
+    }
+    if (noseFlow > 30) {
       label(ctx, t("Air through the nose"), X(0), Y(4.15), k);
     }
   });

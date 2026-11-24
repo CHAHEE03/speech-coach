@@ -1,6 +1,6 @@
 /**
- * How much air left the lips while the voice spoke, over time, with the words underneath: the
- * engine's mean airflow at the lips (telemetry, cm³/s, smoothed ~30 ms), sampled every frame during
+ * How much air left the lips and nostrils while the voice spoke, with the words underneath: the
+ * engine's mean airflow (telemetry, cm³/s, smoothed ~30 ms), sampled every telemetry message during
  * the current utterance and kept after it ends, so a burst can be looked at again. An aspirated
  * stop (ㅋ ㅍ) stands out as a tall peak; plain and tense ones (ㄱ ㄲ ㅂ ㅃ) hardly rise
  * (tests/airflow.test.ts). Every utterance also starts with a puff as the lungs come up.
@@ -15,9 +15,10 @@ import { planNow } from "./ScoreView.tsx";
 
 /** a strong burst: an aspirated stop's release reaches ~900-1100 cm³/s */
 const STRONG = 600;
+const MOUTH = "#4da3f0", NOSE = "#a3d977";
 
 export function AirflowGraph() {
-  const samples = useRef<{ id: number; pts: [number, number][] }>({ id: -1, pts: [] });
+  const samples = useRef<{ id: number; pts: [time: number, mouth: number, nose: number][] }>({ id: -1, pts: [] });
 
   // record from each telemetry message, not each drawn frame: a slow or hidden page draws few frames,
   // and a burst lasts only ~100 ms
@@ -34,9 +35,11 @@ export function AirflowGraph() {
         }
         const now = tele.t.clock - sp.offset;
         if (now < 0 || now > sp.plan.end + 0.3) return;
-        const flow = tele.t.flow;
+        const { flow, nasalFlow } = tele.t;
         const last = rec.pts[rec.pts.length - 1];
-        if (!last || now > last[0]) rec.pts.push([now, Math.max(0, flow[flow.length - 1] ?? 0)]);
+        if (!last || now > last[0]) {
+          rec.pts.push([now, Math.max(0, flow[flow.length - 1] ?? 0), Math.max(0, nasalFlow[nasalFlow.length - 1] ?? 0)]);
+        }
       }),
     [],
   );
@@ -49,13 +52,31 @@ export function AirflowGraph() {
     ctx.clearRect(0, 0, w, h);
     ctx.fillStyle = C.page;
     ctx.fillRect(0, 0, w, h);
-    const padL = 12, padR = 12, padT = 14, padB = 34;
+    const padL = 12, padR = 12, padT = 34, padB = 34;
     const gw = w - padL - padR, gh = h - padT - padB;
     if (gw <= 0 || gh <= 0) return;
     const span = sp ? sp.plan.end + 0.3 : 1;
-    const top = Math.max(1000, ...rec.pts.map((p) => p[1]));
+    // Both outlets share a scale so a nasal consonant and a mouth burst compare honestly.
+    const top = rec.pts.reduce((max, [, mouth, nose]) => Math.max(max, mouth, nose), 1000);
     const X = (tm: number) => padL + (tm / span) * gw;
     const Y = (v: number) => padT + gh - (v / top) * gh;
+
+    ctx.font = '600 12px "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", system-ui, sans-serif';
+    ctx.textAlign = "left";
+    ctx.textBaseline = "middle";
+    let legendX = padL;
+    for (const [name, color] of [[t("Mouth"), MOUTH], [t("Nose"), NOSE]]) {
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(legendX, 15);
+      ctx.lineTo(legendX + 18, 15);
+      ctx.stroke();
+      ctx.fillStyle = color;
+      ctx.fillText(name, legendX + 24, 15);
+      legendX += 24 + ctx.measureText(name).width + 20;
+    }
+    ctx.lineWidth = 1;
 
     // the strong-air line, and the baseline
     ctx.save();
@@ -83,11 +104,11 @@ export function AirflowGraph() {
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       ctx.font = '500 14px "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", system-ui, sans-serif';
-      ctx.fillText(t("Speak to see how much air leaves the mouth"), padL + gw / 2, padT + gh / 2);
+      ctx.fillText(t("Speak to see mouth and nose airflow"), padL + gw / 2, padT + gh / 2);
       return;
     }
 
-    // the airflow, filled
+    // Mouth airflow stays filled; the nose is a line above it so both remain visible.
     ctx.beginPath();
     ctx.moveTo(X(rec.pts[0][0]), Y(0));
     for (const [tm, v] of rec.pts) ctx.lineTo(X(tm), Y(v));
@@ -97,8 +118,13 @@ export function AirflowGraph() {
     ctx.fill();
     ctx.beginPath();
     rec.pts.forEach(([tm, v], i) => (i ? ctx.lineTo(X(tm), Y(v)) : ctx.moveTo(X(tm), Y(v))));
-    ctx.strokeStyle = "#4da3f0";
+    ctx.strokeStyle = MOUTH;
     ctx.lineWidth = 2;
+    ctx.stroke();
+
+    ctx.beginPath();
+    rec.pts.forEach(([tm, , nose], i) => (i ? ctx.lineTo(X(tm), Y(nose)) : ctx.moveTo(X(tm), Y(nose))));
+    ctx.strokeStyle = NOSE;
     ctx.stroke();
 
     // the words under their spans
@@ -123,5 +149,5 @@ export function AirflowGraph() {
       ctx.stroke();
     }
   });
-  return <canvas ref={ref} className="airflow-graph" role="img" aria-label={t("How much air left the mouth while speaking")} />;
+  return <canvas ref={ref} className="airflow-graph" role="img" aria-label={t("How much air left the mouth and nose while speaking")} />;
 }
