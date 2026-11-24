@@ -6,7 +6,7 @@ import { describe, expect, test } from "bun:test";
 import { initEngine } from "./harness.ts";
 
 await initEngine();
-const { koreanPhrases } = await import("../src/ui/korean.ts");
+const { koreanPhrases, between } = await import("../src/ui/korean.ts");
 const { planPhrases } = await import("../src/wasm/engine.ts");
 const male = { female: 0, child: 0 };
 
@@ -33,5 +33,27 @@ describe("koreanPhrases", () => {
 
   test("no Hangul, no phrases", () => {
     expect(koreanPhrases("   ")).toEqual([]);
+  });
+});
+
+describe("between: the consonant chart's words", () => {
+  test("a consonant starts the second syllable", () => {
+    expect(between("ㅂ", "ㅏ")).toBe("아바");
+    expect(between("ㄲ", "ㅣ")).toBe("이끼");
+    expect(between("ㅎ", "ㅜ")).toBe("우후");
+    expect(between("ㅊ", "ㅡ")).toBe("으츠");
+  });
+
+  test("ㅇ only sounds at a syllable's end", () => {
+    expect(between("ㅇ", "ㅏ")).toBe("앙아");
+  });
+
+  test("each one is speakable", () => {
+    for (const c of "ㄱㄲㅋㄷㄸㅌㅂㅃㅍㅈㅉㅊㅅㅆㅎㅁㄴㅇㄹ") expect(koreanPhrases(between(c, "ㅏ"))[0].segments.length).toBeGreaterThanOrEqual(3);
+  });
+
+  test("anything else is refused", () => {
+    expect(() => between("b", "ㅏ")).toThrow();
+    expect(() => between("ㅂ", "a")).toThrow();
   });
 });

@@ -132,6 +132,45 @@ button {
   min-height: 0;
 }
 
+/* a long subtitle wraps under the title instead of squeezing it */
+.screen-head {
+  flex-wrap: wrap;
+}
+
+.screen-title {
+  white-space: nowrap;
+}
+
+/* the Korean chart has 5 columns, not the IPA chart's 11: big letters, easy to press, no sideways scroll */
+.ipa-chart.ko-chart {
+  min-width: 0;
+}
+
+.ipa-chart.ko-chart th {
+  font-size: 15px;
+  letter-spacing: 0;
+  padding: 6px 4px;
+  white-space: normal;
+}
+
+.ipa-chart.ko-chart thead th:first-child,
+.ipa-chart.ko-chart tbody th {
+  width: 64px;
+}
+
+.ipa-chart.ko-chart td {
+  height: auto;
+  padding: 4px 2px;
+  white-space: normal;
+}
+
+.ipa-chart.ko-chart button.ipa {
+  min-width: 40px;
+  height: 44px;
+  font-size: 24px;
+  padding: 0 4px;
+}
+
 .screen {
   position: relative;
   display: flex;

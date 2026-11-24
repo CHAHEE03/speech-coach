@@ -1,5 +1,19 @@
 import { lyricsToSyllables, type Phrase, type Segment } from "../wasm/engine.ts";
 
+/** Hangul's initial consonants and medial vowels in Unicode order (a syllable's code is built from their indexes). */
+const ONSETS = "ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ";
+const MEDIALS = "ㅏㅐㅑㅒㅓㅔㅕㅖㅗㅘㅙㅚㅛㅜㅝㅞㅟㅠㅡㅢㅣ";
+const NG_CODA = 21;
+const syllable = (onset: number, medial: number, coda = 0) => String.fromCharCode(0xac00 + (onset * 21 + medial) * 28 + coda);
+
+/** A consonant said between two vowels, as Hangul: ㅂ with ㅏ is 아바. ㅇ sounds only at the end of a syllable, so it is 앙아. */
+export function between(consonant: string, vowel: string): string {
+  const c = ONSETS.indexOf(consonant), v = MEDIALS.indexOf(vowel);
+  if (c < 0 || v < 0 || consonant.length !== 1 || vowel.length !== 1) throw new Error(`not a Hangul consonant and vowel: ${consonant} ${vowel}`);
+  const silent = ONSETS.indexOf("ㅇ");
+  return consonant === "ㅇ" ? syllable(silent, v, NG_CODA) + syllable(silent, v) : syllable(silent, v) + syllable(c, v);
+}
+
 /**
  * Korean text → phrases for Speak, one per sentence. The engine reads Hangul only as sung
  * syllables (its Korean front end, with Korean sound rules and aspiration); their segments,

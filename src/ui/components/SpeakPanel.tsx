@@ -5,6 +5,7 @@ import { useStore } from "../store.ts";
 import { speakText, speakPhrases, stopSpeaking, onPlan, currentPlan, spokenWordNow, speakingNow, useSpeech, type SpeakLang } from "../speech.ts";
 import { mouthWords } from "../mouthWords.ts";
 import { tokenizeIpa } from "../../wasm/engine.ts";
+import { between, koreanPhrases } from "../korean.ts";
 import { Menu, Slider } from "./Controls.tsx";
 import { Chip, Screen } from "./Screen.tsx";
 import { LangPick } from "./LangPick.tsx";
@@ -121,6 +122,56 @@ function ConsonantChart(props: { onPad: (c: string) => void }) {
   );
 }
 
+// Korean consonants by where (columns) and how (rows) they're made; each cell lists plain, tense, aspirated
+const KO_PLACES = ["Lips", "Gums", "Hard palate", "Soft palate", "Glottis"];
+const KO_CHART: [string, string[][]][] = [
+  ["Plosive", [["ㅂ", "ㅃ", "ㅍ"], ["ㄷ", "ㄸ", "ㅌ"], [], ["ㄱ", "ㄲ", "ㅋ"], []]],
+  ["Affricate", [[], [], ["ㅈ", "ㅉ", "ㅊ"], [], []]],
+  ["Fricative", [[], ["ㅅ", "ㅆ"], [], [], ["ㅎ"]]],
+  ["Nasal", [["ㅁ"], ["ㄴ"], [], ["ㅇ"], []]],
+  ["Liquid", [[], ["ㄹ"], [], [], []]],
+];
+
+/** The Korean consonant chart: press one to hear and see it between two vowels (아바, 아빠, 아파…). */
+function KoreanChart(props: { onPad: (c: string) => void; sounding: string | null }) {
+  return (
+    <div className="chart-scroll">
+      <table className="ipa-chart ko-chart">
+        <thead>
+          <tr>
+            <th />
+            {KO_PLACES.map((p) => (
+              <th key={p} scope="col">
+                {t(p)}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {KO_CHART.map(([manner, cells]) => (
+            <tr key={manner}>
+              <th scope="row">{t(manner)}</th>
+              {cells.map((jamo, i) => (
+                <td key={i}>
+                  {jamo.length ? (
+                    jamo.map((c) => (
+                      <button key={c} className={`ipa${c === props.sounding ? " now" : ""}`} onClick={() => props.onPad(c)} title={t("Say it between two vowels")}>
+                        {c}
+                      </button>
+                    ))
+                  ) : (
+                    <span className="ipa-empty" />
+                  )}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 /** Whether speech is sounding, polled each frame (re-renders only when it changes). */
 function useSpeaking(): boolean {
   const [on, setOn] = useState(false);
@@ -171,6 +222,9 @@ export function SpeakRight() {
   const [busy, setBusy] = useState(false);
   const [trans, setTrans] = useState(currentPlan()?.transcription ?? "");
   const [vowel, setVowel] = useState("ɑ");
+  const [koVowel, setKoVowel] = useState("ㅏ");
+  const [koPressed, setKoPressed] = useState<string | null>(null);
+  const korean = lang === "ko" && !ipa;
   const speaking = useSpeaking();
   useEffect(() => onPlan((p) => setTrans(p?.transcription ?? "")), []);
   // in the browser each visit starts afresh, on the first example of the words' language (the
@@ -200,6 +254,14 @@ export function SpeakRight() {
     await start();
     if (!useStore.getState().started) return;
     speakPhrases([{ segments: tokenizeIpa(`ˈ${vowel}${c}${vowel}`), intonation: "flat" }], { body, rate, f0 });
+  };
+  const koPad = async (c: string) => {
+    await start();
+    if (!useStore.getState().started) return;
+    setKoPressed(c);
+    const word = between(c, koVowel);
+    setText(word);
+    speakPhrases(koreanPhrases(word), { body, rate, f0 });
   };
 
   const press = () => (speaking ? stopSpeaking() : void speak());
@@ -273,18 +335,18 @@ export function SpeakRight() {
       <Screen
         className="s-chart"
         title="Consonants"
-        sub="Between two vowels"
+        sub={korean ? "Plain · tense · aspirated" : "Between two vowels"}
         tools={
           <div className="vowel-pick" role="group" aria-label="Vowel around it">
-            {["ɑ", "i", "u", "ə"].map((v) => (
-              <Chip key={v} on={vowel === v} onClick={() => setVowel(v)} className="ipa-chip">
+            {(korean ? ["ㅏ", "ㅣ", "ㅜ", "ㅡ"] : ["ɑ", "i", "u", "ə"]).map((v) => (
+              <Chip key={v} on={(korean ? koVowel : vowel) === v} onClick={() => (korean ? setKoVowel : setVowel)(v)} className="ipa-chip">
                 {v}
               </Chip>
             ))}
           </div>
         }
       >
-        <ConsonantChart onPad={(c) => void pad(c)} />
+        {korean ? <KoreanChart onPad={(c) => void koPad(c)} sounding={speaking ? koPressed : null} /> : <ConsonantChart onPad={(c) => void pad(c)} />}
       </Screen>
       <Screen className="s-tube" title="Tube" sub="Glottis to lips">
         <TubeView />
