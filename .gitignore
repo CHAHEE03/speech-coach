@@ -4,3 +4,5 @@ target/
 .DS_Store
 *.wav
 src/wasm/chimera.wasm
+.certs/
+.vercel/
