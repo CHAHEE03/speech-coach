@@ -19,7 +19,7 @@ import { beam, beamPts, chaikin, dot, handle, label, ring, seg, type Pt } from "
 import { buildProfile, Gaze, jawFn, VIEW, type Profile } from "./profile.ts";
 import { drawReadouts, type Slot } from "./readouts.ts";
 import { Expression } from "./expression.ts";
-import { drawDot, drawIllustration, drawNasalFlow, drawPartNames, ILLUSTRATION } from "./illustration.ts";
+import { drawDot, drawIllustration, drawNasalFlow, drawPartNames, ILLUSTRATION, NasalAirflow } from "./illustration.ts";
 
 export { ILLUSTRATION };
 
@@ -167,6 +167,7 @@ export class AnatomyRenderer {
   /** air leaving the lips (see drawLipPuffs), body cm */
   private puffs: { x: number; y: number; vx: number; vy: number; r: number; life: number }[] = [];
   private puffDebt = 0;
+  private nasalAir = new NasalAirflow();
   /** the tissue in front of the lips: how far it swings out (radians) */
   private tissueAngle = 0;
   private clock = 0;
@@ -287,8 +288,8 @@ export class AnatomyRenderer {
       // air out of the mouth, by how much leaves the lips: always shown, like the nose's
       if (tele && tele.t.gate > 0.5) this.drawLipPuffs(ctx, f, tele, opts.dt, ILLUSTRATION.flow);
       if (view.tissue) this.drawTissue(ctx, f, tele, opts.dt);
-      // air through the nose whenever the soft palate is open and air flows (ㅁ ㄴ ㅇ, a nasal voice): always shown, it's what's being taught
-      if (tele && tele.t.gate > 0.5 && tele.t.pLung > 1) drawNasalFlow(ctx, G, f, (p) => this.P(p), this.scale, Math.min(1, tele.t.velumPort / 0.25), this.clock);
+      // Nasal airflow is always taught in the illustration, even when oral particles are hidden.
+      drawNasalFlow(ctx, G, f, (p) => this.P(p), this.scale, tele?.t.nasalFlow, opts.dt, this.nasalAir);
       if (view.calipers) this.drawCalipers(ctx, f, ILLUSTRATION.caliper);
       if (view.labels) drawPartNames(ctx, G, f, (p) => this.P(p), this.scale);
       const ringOf: Record<HandleId, string> = { tongue: ILLUSTRATION.tongueLine, tip: ILLUSTRATION.tongueLine, jaw: ILLUSTRATION.headLine, lips: ILLUSTRATION.lipsLine, velum: ILLUSTRATION.velumLine, larynx: ILLUSTRATION.headLine };
