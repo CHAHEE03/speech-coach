@@ -10,6 +10,7 @@ import type { Vec } from "./geom.ts";
 import type { Profile } from "./profile.ts";
 import { chaikin, type Pt } from "./vector.ts";
 import { t } from "../i18n.ts";
+import { BurstEnvelope } from "../burst.ts";
 
 export const ILLUSTRATION = {
   page: "#0d1216",
@@ -127,15 +128,24 @@ export class NasalAirflow {
   readonly particles = Array.from({ length: 70 }, (_, i) => ({ s: (i * 0.618034) % 1, u: (i * 0.754878) % 1 * 2 - 1, amount: 0 }));
   puffs: { x: number; y: number; vx: number; vy: number; r: number; life: number }[] = [];
   private puffDebt = 0;
+  /** shown only as the nose's air starts (see burst.ts): a full burst is a 100 cm³/s rise, a nasal is ~130 */
+  private streakBurst = new BurstEnvelope(100);
+  private puffBurst = new BurstEnvelope(100);
 
   update(flow: Float32Array | undefined, dt: number, length: number): void {
     dt = Math.max(0, Math.min(0.05, dt));
+    // the strongest flow anywhere in the nose: air entering at the port counts before it reaches the nostrils
+    let most = 0;
+    if (flow) for (const v of flow) if (v > most) most = v;
+    const gate = this.streakBurst.update(most, dt);
     for (const p of this.particles) {
       const amount = nasalAmount(nasalFlowAt(flow, p.s));
       if (amount) p.s = (p.s + (1.5 + 5 * amount) * dt / Math.max(0.01, length)) % 1;
-      p.amount = nasalAmount(nasalFlowAt(flow, p.s));
+      p.amount = nasalAmount(nasalFlowAt(flow, p.s)) * gate;
     }
-    const amount = nasalAmount(nasalFlowAt(flow, 1));
+    const nostrils = nasalFlowAt(flow, 1);
+    const burst = this.puffBurst.update(nostrils, dt);
+    const amount = nasalAmount(nostrils) > 0 ? burst : 0;
     // puffs already out drift and fade like the lips' do; a closed port only stops new ones
     this.puffs = this.puffs.filter((p) => {
       p.x += p.vx * dt;

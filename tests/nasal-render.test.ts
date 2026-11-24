@@ -41,6 +41,18 @@ describe("nasal airflow animation", () => {
     expect(air.puffs.length).toBeGreaterThan(0);
   });
 
+  test("a held nasal shows as its air starts, then fades (air drawn only as it bursts out)", () => {
+    const air = new NasalAirflow();
+    air.update(uniform(150), 0.02, 10);
+    expect(visible(air).length).toBeGreaterThan(35);
+    for (let i = 0; i < 30; i++) air.update(uniform(150), 0.02, 10);
+    // 0.6 s into the hold: nearly nothing drawn, and no new puffs
+    expect(visible(air).length).toBeLessThan(5);
+    const before = air.puffs.length;
+    air.update(uniform(150), 0.02, 10);
+    expect(air.puffs.length).toBeLessThanOrEqual(before);
+  });
+
   test("nostril flow increases puff rate, speed and initial size", () => {
     const weak = new NasalAirflow(), nasal = new NasalAirflow();
     for (let i = 0; i < 10; i++) {

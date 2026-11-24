@@ -19,6 +19,7 @@ import { beam, beamPts, chaikin, dot, handle, label, ring, seg, type Pt } from "
 import { buildProfile, Gaze, jawFn, VIEW, type Profile } from "./profile.ts";
 import { drawReadouts, type Slot } from "./readouts.ts";
 import { Expression } from "./expression.ts";
+import { BurstEnvelope } from "../burst.ts";
 import { drawDot, drawIllustration, drawNasalFlow, drawPartNames, ILLUSTRATION, NasalAirflow } from "./illustration.ts";
 
 export { ILLUSTRATION };
@@ -167,6 +168,8 @@ export class AnatomyRenderer {
   /** air leaving the lips (see drawLipPuffs), body cm */
   private puffs: { x: number; y: number; vx: number; vy: number; r: number; life: number }[] = [];
   private puffDebt = 0;
+  /** the lips' airflow, as bursts (see burst.ts): a full one at 500 cm³/s above the recent average */
+  private lipBurst = new BurstEnvelope(500);
   private nasalAir = new NasalAirflow();
   /** the tissue in front of the lips: how far it swings out (radians) */
   private tissueAngle = 0;
@@ -390,7 +393,8 @@ export class AnatomyRenderer {
    */
   private drawLipPuffs(ctx: CanvasRenderingContext2D, f: HumanFrame, tele: TelemetryMessage, dt: number, ink: string): void {
     const flow = tele.t.flow;
-    const amount = Math.min(1, Math.max(0, flow[flow.length - 1] ?? 0) / 600);
+    // only when the air bursts out (a release, a word's start), not while it streams steadily
+    const amount = this.lipBurst.update(flow[flow.length - 1] ?? 0, dt);
     const end = f.grid[f.grid.length - 1];
     if (end) {
       const mouth = { x: Math.max(end.inner.x, end.outer.x) + 0.15, y: (end.inner.y + end.outer.y) / 2 };

@@ -14,6 +14,7 @@ import { ILLUSTRATION as C } from "../render/illustration.ts";
 import { useStore } from "../store.ts";
 import { useCanvasLoop } from "../useCanvas.ts";
 import { frontShape } from "../front.ts";
+import { BurstEnvelope } from "../burst.ts";
 
 const clamp = (x: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, x));
 
@@ -23,6 +24,9 @@ export function FrontView() {
   const mouthAir = useRef(0);
   /** the air leaving the nostrils, eased (0 … 1) */
   const noseAir = useRef(0);
+  /** bursts of air: a full one at 500 cm³/s above the recent average at the lips, 100 at the nostrils */
+  const mouthBurst = useRef(new BurstEnvelope(500));
+  const noseBurst = useRef(new BurstEnvelope(100));
   const ref = useCanvasLoop(({ ctx, w, h, dt }) => {
     const clock = (clockRef.current += dt);
     ctx.clearRect(0, 0, w, h);
@@ -135,7 +139,8 @@ export function FrontView() {
     // air out of the mouth, coming at the viewer: rings spreading from the lips, as many and as bold
     // as the airflow at the lips (a held vowel ~130 cm³/s: faint; an aspirated ㅋ ㅍ ~1000: strong)
     const lipFlow = tele && tele.t.gate > 0.5 ? Math.max(0, tele.t.flow[tele.t.flow.length - 1] ?? 0) : 0;
-    const target = clamp(lipFlow / 600, 0, 1);
+    // only as the air bursts out, not while it streams steadily (see burst.ts)
+    const target = mouthBurst.current.update(lipFlow, dt);
     mouthAir.current += (target - mouthAir.current) * Math.min(1, dt * (target > mouthAir.current ? 14 : 5));
     const blow = mouthAir.current;
     if (blow > 0.04) {
@@ -155,7 +160,7 @@ export function FrontView() {
 
     // Nasal consonants reach ~150 cm³/s: make them clear, with the same quick rise and soft fade as the mouth.
     const noseFlow = tele ? Math.max(0, tele.t.nasalFlow[tele.t.nasalFlow.length - 1] ?? 0) : 0;
-    const noseTarget = clamp(noseFlow / 200, 0, 1);
+    const noseTarget = noseBurst.current.update(noseFlow, dt);
     noseAir.current += (noseTarget - noseAir.current) * Math.min(1, dt * (noseTarget > noseAir.current ? 14 : 5));
     const nasal = noseAir.current;
     if (nasal > 0.05) {
