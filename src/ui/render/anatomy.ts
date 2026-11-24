@@ -258,7 +258,9 @@ export class AnatomyRenderer {
     if (view.illustration) {
       const bulge = puffProfile(f, model.tract.scale, this.face.puff);
       drawIllustration(ctx, G, f, (p) => this.P(p), this.scale, (v) => (bulge ? v.map(bulge) : v));
-      // the physics overlays draw additively and vanish on the white air: they stay with the Neon look
+      // airflow and the noise of a hiss, in solid ink (added light would vanish on the white air)
+      if (view.particles && tele) this.drawParticles(ctx, model, f, tele, opts.dt, ILLUSTRATION.flow);
+      if (tele) this.drawTurbulence(ctx, model, f, tele, ILLUSTRATION.noise);
       if (view.labels) drawPartNames(ctx, G, f, (p) => this.P(p), this.scale);
       const ringOf: Record<HandleId, string> = { tongue: ILLUSTRATION.tongueLine, tip: ILLUSTRATION.tongueLine, jaw: ILLUSTRATION.headLine, lips: ILLUSTRATION.lipsLine, velum: ILLUSTRATION.velumLine, larynx: ILLUSTRATION.headLine };
       for (const h of this.handles(model, f, a)) {
@@ -411,7 +413,8 @@ export class AnatomyRenderer {
     }
   }
 
-  private drawParticles(ctx: CanvasRenderingContext2D, model: VoiceModel, f: HumanFrame, tele: TelemetryMessage, dt: number): void {
+  /** `ink`: draw in this solid colour (the illustration's white air would swallow added light) */
+  private drawParticles(ctx: CanvasRenderingContext2D, model: VoiceModel, f: HumanFrame, tele: TelemetryMessage, dt: number, ink?: string): void {
     const t = tele.t;
     const nodeS = model.nodeS(t.phLen, t.orLen);
     const areas = new Float32Array(t.phAreas.length + t.orAreas.length);
@@ -447,10 +450,20 @@ export class AnatomyRenderer {
       p.px = x;
       p.py = y;
     }
-    path.forEach((pa, i) => beam(ctx, pa, "#ffe2a8", 1.1, { alpha: 0.16 + 0.2 * i }));
+    path.forEach((pa, i) => {
+      if (!ink) return beam(ctx, pa, "#ffe2a8", 1.1, { alpha: 0.16 + 0.2 * i });
+      ctx.save();
+      ctx.globalCompositeOperation = "source-over";
+      ctx.globalAlpha = 0.5 + 0.25 * i;
+      ctx.strokeStyle = ink;
+      ctx.lineWidth = 2.6;
+      ctx.lineCap = "round";
+      ctx.stroke(pa);
+      ctx.restore();
+    });
   }
 
-  private drawTurbulence(ctx: CanvasRenderingContext2D, model: VoiceModel, f: HumanFrame, tele: TelemetryMessage): void {
+  private drawTurbulence(ctx: CanvasRenderingContext2D, model: VoiceModel, f: HumanFrame, tele: TelemetryMessage, ink?: string): void {
     const t = tele.t;
     if (!(t.noiseLevel > 1) || t.noiseNode < 0) return;
     const s = model.branchS(t.noiseNode, t.phLen, t.orLen);
@@ -462,7 +475,19 @@ export class AnatomyRenderer {
     for (let i = 0; i < 30; i++) {
       const pos = this.gridPoint(f, s + 0.2 + rnd() * 1.2, rnd() * 2 - 1);
       if (!pos) continue;
-      dot(ctx, this.X(pos), this.Y(pos), 0.6 + rnd() * 1.4, "#f4fbff", 0.15 + 0.7 * intensity * rnd());
+      const r = 0.6 + rnd() * 1.4, alpha = 0.15 + 0.7 * intensity * rnd();
+      if (!ink) {
+        dot(ctx, this.X(pos), this.Y(pos), r, "#f4fbff", alpha);
+        continue;
+      }
+      ctx.save();
+      ctx.globalCompositeOperation = "source-over";
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = ink;
+      ctx.beginPath();
+      ctx.arc(this.X(pos), this.Y(pos), r + 0.6, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
     }
   }
 

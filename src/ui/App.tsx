@@ -37,11 +37,11 @@ function ViewToggles() {
       <Toggle label="3D" checked={view.threeD} onChange={(v) => setView({ threeD: v })} />
       {!view.threeD && <Toggle label="Neon" checked={!view.illustration} onChange={(v) => setView({ illustration: !v })} />}
       {!view.threeD && view.illustration && <Toggle label="Names" checked={view.labels} onChange={(v) => setView({ labels: v })} />}
-      {/* the physics overlays belong to the glowing looks (Neon and 3D) */}
+      <Toggle label="Airflow" checked={view.particles} onChange={(v) => setView({ particles: v })} />
+      {/* pressure, measurements and grid draw additively: they belong to the glowing looks (Neon and 3D) */}
       {(view.threeD || !view.illustration) && (
         <>
           <Toggle label="Sound pressure" checked={view.pressure} onChange={(v) => setView({ pressure: v })} />
-          <Toggle label="Airflow" checked={view.particles} onChange={(v) => setView({ particles: v })} />
           <Toggle label="Measurements" checked={view.calipers} onChange={(v) => setView({ calipers: v })} />
           <Toggle label="Grid" checked={view.grid} onChange={(v) => setView({ grid: v })} />
         </>

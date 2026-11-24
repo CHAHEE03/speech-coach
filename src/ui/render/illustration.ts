@@ -26,6 +26,9 @@ export const ILLUSTRATION = {
   teethLine: "#8c8178",
   folds: "#e8a19d",
   text: "#20262b",
+  /** airflow streaks and the noise of a hiss */
+  flow: "#2f86d6",
+  noise: "#5b6b78",
 };
 
 const C = ILLUSTRATION;
