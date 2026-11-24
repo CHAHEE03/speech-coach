@@ -18,6 +18,8 @@ export interface ViewOptions {
   illustration: boolean;
   /** the illustration names its parts */
   labels: boolean;
+  /** a tissue hangs in front of the lips (the illustration) */
+  tissue: boolean;
 }
 
 interface State {
@@ -71,7 +73,7 @@ export const useStore = create<State>((set, get) => ({
   tipFree: true,
   volume: 0.8,
   hold: false,
-  view: { pressure: false, particles: false, grid: false, calipers: false, threeD: false, illustration: true, labels: true },
+  view: { pressure: false, particles: false, grid: false, calipers: false, threeD: false, illustration: true, labels: true, tissue: true },
   start: () => {
     if (get().started) return Promise.resolve();
     if (startPromise) return startPromise;

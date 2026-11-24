@@ -65,6 +65,8 @@ export interface ViewFlags {
   illustration?: boolean;
   /** in the illustration: the parts' names */
   labels?: boolean;
+  /** in the illustration: a tissue in front of the lips that the air swings */
+  tissue?: boolean;
 }
 
 interface Particle {
@@ -162,6 +164,11 @@ export class AnatomyRenderer {
   private sparkSeed = 1;
   private geo: Profile | null = null;
   private echoes: Echo[] = [];
+  /** air leaving the lips (see drawLipPuffs), body cm */
+  private puffs: { x: number; y: number; vx: number; vy: number; r: number; life: number }[] = [];
+  private puffDebt = 0;
+  /** the tissue in front of the lips: how far it swings out (radians) */
+  private tissueAngle = 0;
   private clock = 0;
   private lastEcho = -1;
   /** where the eye looks */
@@ -277,6 +284,9 @@ export class AnatomyRenderer {
       // airflow and the noise of a hiss, in solid ink (added light would vanish on the white air)
       if (view.particles && tele) this.drawParticles(ctx, model, f, tele, opts.dt, ILLUSTRATION.flow);
       if (tele) this.drawTurbulence(ctx, model, f, tele, ILLUSTRATION.noise);
+      // air out of the mouth, by how much leaves the lips: always shown, like the nose's
+      if (tele && tele.t.gate > 0.5) this.drawLipPuffs(ctx, f, tele, opts.dt, ILLUSTRATION.flow);
+      if (view.tissue) this.drawTissue(ctx, f, tele, opts.dt);
       // air through the nose whenever the soft palate is open and air flows (ㅁ ㄴ ㅇ, a nasal voice): always shown, it's what's being taught
       if (tele && tele.t.gate > 0.5 && tele.t.pLung > 1) drawNasalFlow(ctx, G, f, (p) => this.P(p), this.scale, Math.min(1, tele.t.velumPort / 0.25), this.clock);
       if (view.calipers) this.drawCalipers(ctx, f, ILLUSTRATION.caliper);
@@ -372,6 +382,85 @@ export class AnatomyRenderer {
     this.drawReadouts(ctx, opts.formants, opts.info, opts.slots);
   }
 
+  /**
+   * Air leaving the lips, in front of the mouth: puffs whose rate, speed and size follow the mean
+   * airflow at the lips (the telemetry's last oral node), so an aspirated stop (ㅋ ㅍ, ~900-1100 cm³/s)
+   * blows a stream and a tense one (ㄲ ㅃ) hardly any. Body cm; drawn in solid ink for the white page.
+   */
+  private drawLipPuffs(ctx: CanvasRenderingContext2D, f: HumanFrame, tele: TelemetryMessage, dt: number, ink: string): void {
+    const flow = tele.t.flow;
+    const amount = Math.min(1, Math.max(0, flow[flow.length - 1] ?? 0) / 600);
+    const end = f.grid[f.grid.length - 1];
+    if (end) {
+      const mouth = { x: Math.max(end.inner.x, end.outer.x) + 0.15, y: (end.inner.y + end.outer.y) / 2 };
+      // up to 45 puffs a second at a strong burst, none at rest
+      this.puffDebt += dt * 45 * amount;
+      while (this.puffDebt >= 1 && this.puffs.length < 140) {
+        this.puffDebt -= 1;
+        this.puffs.push({ x: mouth.x, y: mouth.y + (Math.random() - 0.5) * 0.35, vx: 2.5 + 10 * amount, vy: (Math.random() - 0.5) * 1.4, r: 0.1 + 0.28 * amount, life: 1 });
+      }
+    }
+    ctx.save();
+    ctx.globalCompositeOperation = "source-over";
+    ctx.strokeStyle = ink;
+    ctx.lineWidth = 1.6;
+    this.puffs = this.puffs.filter((p) => {
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+      p.r += 0.8 * dt;
+      p.life -= 1.5 * dt;
+      if (p.life <= 0) return false;
+      ctx.globalAlpha = 0.85 * p.life;
+      ctx.beginPath();
+      ctx.arc(this.X(p), this.Y(p), p.r * this.scale, 0, Math.PI * 2);
+      ctx.stroke();
+      return true;
+    });
+    ctx.restore();
+  }
+
+  /**
+   * A paper tissue hanging in front of the lips, the speech therapist's test: the air leaving the
+   * lips swings it forward (an aspirated ㅋ ㅍ flips it up, a tense ㄲ ㅃ hardly moves it) and it
+   * settles back when the air stops. Follows the same lip airflow as the puffs, eased like paper.
+   */
+  private drawTissue(ctx: CanvasRenderingContext2D, f: HumanFrame, tele: TelemetryMessage | null, dt: number): void {
+    const end = f.grid[f.grid.length - 1];
+    if (!end) return;
+    const flow = tele?.t.flow;
+    const amount = flow && tele.t.gate > 0.5 ? Math.min(1, Math.max(0, flow[flow.length - 1] ?? 0) / 600) : 0;
+    // quick to lift, slower to fall back, like paper in a breath
+    const target = 1.25 * amount;
+    this.tissueAngle += (target - this.tissueAngle) * Math.min(1, dt * (target > this.tissueAngle ? 14 : 4));
+    const lipsX = Math.max(end.inner.x, end.outer.x), lipsY = (end.inner.y + end.outer.y) / 2;
+    const top = { x: lipsX + 2.3, y: lipsY + 2.4 };
+    const len = 4.2, width = 0.12;
+    // the strip bends more towards its free end
+    const pts: Vec[] = [];
+    for (let i = 0; i <= 10; i++) {
+      const u = i / 10;
+      const a = this.tissueAngle * (0.35 + 0.65 * u);
+      pts.push({ x: top.x + Math.sin(a) * len * u, y: top.y - Math.cos(a) * len * u });
+    }
+    const side = pts.map((p) => ({ x: p.x + width, y: p.y }));
+    ctx.save();
+    ctx.globalCompositeOperation = "source-over";
+    ctx.beginPath();
+    [...pts, ...side.reverse()].forEach((p, i) => (i ? ctx.lineTo(this.X(p), this.Y(p)) : ctx.moveTo(this.X(p), this.Y(p))));
+    ctx.closePath();
+    ctx.lineJoin = "round";
+    ctx.lineWidth = 0.35 * this.scale;
+    ctx.strokeStyle = "#b9c3ca";
+    ctx.stroke();
+    ctx.lineWidth = 0.3 * this.scale;
+    ctx.strokeStyle = "#ffffff";
+    ctx.stroke();
+    // the clip it hangs from
+    ctx.fillStyle = "#8c8178";
+    ctx.fillRect(this.X(top) - 0.25 * this.scale, this.Y(top) - 0.18 * this.scale, 0.62 * this.scale, 0.18 * this.scale);
+    ctx.restore();
+  }
+
   private nearestEcho(t: number): Echo | null {
     let best: Echo | null = null, bd = 0.016;
     for (const e of this.echoes) {
@@ -456,7 +545,9 @@ export class AnatomyRenderer {
     areas.set(t.orAreas, t.phAreas.length);
     const L = f.lipS;
     const path = [new Path2D(), new Path2D(), new Path2D()];
-    for (const p of this.particles) {
+    const N = this.particles.length;
+    for (let i = 0; i < N; i++) {
+      const p = this.particles[i];
       const U = this.nodeValueAtS(t.flow, nodeS, p.s);
       const A = Math.max(0.05, this.nodeValueAtS(areas, nodeS, p.s));
       const u = U / A; // particle velocity cm/s
@@ -476,8 +567,21 @@ export class AnatomyRenderer {
       if (!pos) continue;
       const x = this.X(pos), y = this.Y(pos);
       if (Number.isFinite(p.px)) {
-        // three brightness bands, one stroke each
-        const band = Math.min(2, Math.floor(Math.min(1, Math.abs(vis) / 6) * Math.min(1, p.life) * 3));
+        let band: number;
+        if (ink) {
+          // the drawing shows how MUCH air passes (volume flow): more of it, more and thicker streaks;
+          // 600 cm³/s is a strong burst (ㅋ ㅍ reach ~900-1100, a held vowel ~130). Air drawn inwards counts as none.
+          const amount = Math.min(1, Math.max(0, U) / 600);
+          if (i / N > 0.12 + 0.88 * amount) {
+            p.px = x;
+            p.py = y;
+            continue;
+          }
+          band = amount < 0.2 ? 0 : amount < 0.55 ? 1 : 2;
+        } else {
+          // three brightness bands, one stroke each
+          band = Math.min(2, Math.floor(Math.min(1, Math.abs(vis) / 6) * Math.min(1, p.life) * 3));
+        }
         path[band].moveTo(p.px, p.py);
         path[band].lineTo(x, y);
       }
@@ -488,9 +592,9 @@ export class AnatomyRenderer {
       if (!ink) return beam(ctx, pa, "#ffe2a8", 1.1, { alpha: 0.16 + 0.2 * i });
       ctx.save();
       ctx.globalCompositeOperation = "source-over";
-      ctx.globalAlpha = 0.5 + 0.25 * i;
+      ctx.globalAlpha = [0.45, 0.7, 0.9][i];
       ctx.strokeStyle = ink;
-      ctx.lineWidth = 2.6;
+      ctx.lineWidth = [1.4, 2.6, 4.2][i];
       ctx.lineCap = "round";
       ctx.stroke(pa);
       ctx.restore();

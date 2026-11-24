@@ -143,6 +143,18 @@ button {
   flex: 1 0 auto;
 }
 
+.airflow-graph {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.s-air {
+  min-height: 200px;
+}
+
 .s-vowels,
 .s-spec,
 .s-gram,

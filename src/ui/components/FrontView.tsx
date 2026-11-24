@@ -21,6 +21,8 @@ const clamp = (x: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, x
 export function FrontView() {
   const model = useModel();
   const clockRef = useRef(0);
+  /** the air leaving the mouth, eased (0 … 1) */
+  const mouthAir = useRef(0);
   const ref = useCanvasLoop(({ ctx, w, h, dt }) => {
     const clock = (clockRef.current += dt);
     ctx.clearRect(0, 0, w, h);
@@ -131,6 +133,27 @@ export function FrontView() {
       ctx.strokeStyle = C.lipsLine;
       ctx.lineWidth = 1.6;
       ctx.stroke();
+    }
+
+    // air out of the mouth, coming at the viewer: rings spreading from the lips, as many and as bold
+    // as the airflow at the lips (a held vowel ~130 cm³/s: faint; an aspirated ㅋ ㅍ ~1000: strong)
+    const lipFlow = tele && tele.t.gate > 0.5 ? Math.max(0, tele.t.flow[tele.t.flow.length - 1] ?? 0) : 0;
+    const target = clamp(lipFlow / 600, 0, 1);
+    mouthAir.current += (target - mouthAir.current) * Math.min(1, dt * (target > mouthAir.current ? 14 : 5));
+    const blow = mouthAir.current;
+    if (blow > 0.04) {
+      const oy = (s.upperEdge + s.lowerEdge) / 2;
+      ctx.save();
+      ctx.strokeStyle = C.flow;
+      for (let i = 0; i < 3; i++) {
+        const u = (clock * (0.8 + 1.6 * blow) + i / 3) % 1;
+        ctx.globalAlpha = blow * (1 - u) * 0.9;
+        ctx.lineWidth = 1.5 + 2.5 * blow;
+        ctx.beginPath();
+        ctx.ellipse(X(0), Y(oy), (Math.max(s.openW, 0.6) / 2 + 2.2 * u) * k, (Math.max(s.open, 0.3) / 2 + 1.4 * u) * k, 0, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+      ctx.restore();
     }
 
     // air through the nose: puffs from the nostrils while the soft palate is open and air flows

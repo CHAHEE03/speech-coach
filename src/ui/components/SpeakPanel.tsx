@@ -6,6 +6,7 @@ import { speakText, speakPhrases, stopSpeaking, onPlan, currentPlan, spokenWordN
 import { mouthWords } from "../mouthWords.ts";
 import { tokenizeIpa } from "../../wasm/engine.ts";
 import { between, koreanPhrases, REFERENCE } from "../korean.ts";
+import { AirflowGraph } from "./AirflowGraph.tsx";
 import { Menu, Slider } from "./Controls.tsx";
 import { Chip, Screen } from "./Screen.tsx";
 import { LangPick } from "./LangPick.tsx";
@@ -344,6 +345,9 @@ export function SpeakRight() {
           </div>
           {inPlugin && <Lines />}
         </div>
+      </Screen>
+      <Screen className="s-air" title="Air from the mouth" sub="Each word starts with a puff too; a strong second peak is ㅋ ㅌ ㅍ ㅊ">
+        <AirflowGraph />
       </Screen>
       <Screen className="s-score" title="Gestural score">
         <ScoreView />
