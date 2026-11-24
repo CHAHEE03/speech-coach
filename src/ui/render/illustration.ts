@@ -6,7 +6,7 @@
  * the engine's frame), so they move exactly as the voice does.
  */
 import type { HumanFrame } from "../../wasm/types.ts";
-import type { Vec } from "./geom.ts";
+import { catmullRom, type Vec } from "./geom.ts";
 import type { Profile } from "./profile.ts";
 import { chaikin, type Pt } from "./vector.ts";
 import { t } from "../i18n.ts";
@@ -94,6 +94,40 @@ export function nasopharynx(G: Profile, f: HumanFrame): { space: Vec[]; wall: Ve
   return { space, wall };
 }
 
+/**
+ * The front of the neck for the drawing (body cm, from the bottom of the frame up to the chin),
+ * replacing the engine's straight line there: it slopes gently forward toward the collarbone, bulges
+ * over the thyroid cartilage (an Adam's apple: clear for a male body, slight for female or child),
+ * and turns into the under-chin line at the neck-chin angle. From that angle on (under the chin, the
+ * chin, the lower lip) it is the engine's own outline, which moves with the jaw. Profile.ts is left
+ * as is: the 3D head is built from it.
+ */
+export function drawingNeck(G: Profile): Vec[] {
+  const lower = G.skinLower;
+  // the neck-chin angle: the first point of the engine's outline that has turned forward under the chin
+  let angle = lower.findIndex((p) => p.x >= 2.95 && p.y >= 1.6);
+  if (angle < 0) return lower;
+  const front = Math.max(...G.thyroid.map((p) => p.x)); // the thyroid cartilage's prominence
+  const promY = G.thyroid.reduce((b, p) => (p.x > b.x ? p : b)).y;
+  const b = G.model.body;
+  const adult = Math.max(0, 1 - (b.child ?? 0));
+  const apple = (0.05 + 0.3 * (1 - (b.female ?? 0))) * adult; // skin bulge over it (cm)
+  // the bulge sits a little below the prominence's top, with a shallow dip before the chin's turn
+  // (they are only ~0.5 cm apart: a bigger in-and-out there reads as a spike)
+  const neck: Vec[] = catmullRom(
+    [
+      { x: 2.95, y: lower[0].y },
+      { x: 2.6, y: -2.2 },
+      { x: 2.45, y: promY - 1.3 },
+      { x: front + 0.45 + apple, y: promY - 0.25 },
+      { x: 2.6, y: promY + 0.25 },
+      lower[angle],
+    ],
+    4,
+  );
+  return [...neck, ...lower.slice(angle + 1)];
+}
+
 /** Draw the head. `P` maps body cm to CSS px; `scale` is px per cm; `bulge` puffs the cheeks. */
 export function drawIllustration(ctx: CanvasRenderingContext2D, G: Profile, f: HumanFrame, P: (p: Vec) => Pt, scale: number, bulge: (v: Vec[]) => Vec[]): void {
   ctx.save();
@@ -103,7 +137,7 @@ export function drawIllustration(ctx: CanvasRenderingContext2D, G: Profile, f: H
   const soft = (v: Vec[], it = 2) => chaikin(v.map(P), it);
 
   // the silhouette: front of the neck to the lower lip, across the mouth, round the face and head to the back of the neck
-  shape(ctx, P, [...bulge(G.skinLower), ...bulge(G.skinUpper)], C.head, C.headLine, 1.4);
+  shape(ctx, P, [...bulge(drawingNeck(G)), ...bulge(G.skinUpper)], C.head, C.headLine, 1.4);
 
   // the cavities cut out of it: the nose, and the air from the vocal folds to the lips
   shape(ctx, P, G.nasal, C.air, C.headLine, 1);
