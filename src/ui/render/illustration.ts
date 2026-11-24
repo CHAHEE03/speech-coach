@@ -20,6 +20,8 @@ export const ILLUSTRATION = {
   tongue: "#f0918a",
   tongueLine: "#b5554f",
   lips: "#e8a19d",
+  /** the hard palate's shelf, a little darker than the head so it reads as a part */
+  palate: "#e0d2c3",
   /** the upper lip, a shade darker than the lower (it catches less light) */
   lipsUpper: "#d68b87",
   lipsLine: "#a9605c",
@@ -62,19 +64,32 @@ function shape(ctx: CanvasRenderingContext2D, P: (p: Vec) => Pt, pts: Vec[] | Pt
   }
 }
 
-/** A thick soft stroke (the soft palate, the epiglottis) with a darker edge. */
-function band(ctx: CanvasRenderingContext2D, pts: Pt[], width: number, fill: string, line: string): void {
-  if (pts.length < 2) return;
-  ctx.beginPath();
-  pts.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)));
-  ctx.lineCap = "round";
-  ctx.lineJoin = "round";
-  ctx.strokeStyle = line;
-  ctx.lineWidth = width + 2;
-  ctx.stroke();
-  ctx.strokeStyle = fill;
-  ctx.lineWidth = width;
-  ctx.stroke();
+
+/**
+ * The nasopharynx (body cm): the air space from the back of the nasal cavity down behind the soft
+ * palate to the top of the throat's back wall. `space` is the region to fill (it overlaps the nasal
+ * cavity's back edge so the two read as one), `wall` its back wall to outline. The soft palate's
+ * outline (f.velum) runs from where it hangs (index 0) back to its tip (its rearmost point); the
+ * throat's back wall is f.outer up to the point before the one nearest that tip. Null if the shapes
+ * are missing.
+ */
+export function nasopharynx(G: Profile, f: HumanFrame): { space: Vec[]; wall: Vec[] } | null {
+  if (f.velum.length < 3 || f.outer.length < 3 || G.nasal.length < 3) return null;
+  let tip = 0;
+  for (let i = 1; i < f.velum.length; i++) if (f.velum[i].x < f.velum[tip].x) tip = i;
+  const top = f.velum.slice(0, tip + 1); // root → tip along its upper surface
+  const t = f.velum[tip];
+  let near = 0;
+  for (let i = 1; i < f.outer.length; i++) if (Math.hypot(f.outer[i].x - t.x, f.outer[i].y - t.y) < Math.hypot(f.outer[near].x - t.x, f.outer[near].y - t.y)) near = i;
+  const wallTop = f.outer[Math.max(0, near - 1)];
+  const back = G.nasal.reduce((b, p) => (p.x < b.x ? p : b));
+  const behind = G.nasal.filter((p) => p.x < back.x + 0.7);
+  const backTop = behind.reduce((b, p) => (p.y > b.y ? p : b));
+  const backLow = behind.reduce((b, p) => (p.y < b.y ? p : b));
+  // the back wall curves up and forward from the throat to the roof of the nasopharynx
+  const wall: Vec[] = [wallTop, { x: wallTop.x - 0.25, y: (wallTop.y + backTop.y) / 2 }, { x: back.x - 0.4, y: backTop.y - 0.2 }, { x: backTop.x + 0.3, y: backTop.y }];
+  const space: Vec[] = [...top, t, ...wall, { x: backLow.x + 0.3, y: backLow.y }, top[0]];
+  return { space, wall };
 }
 
 /** Draw the head. `P` maps body cm to CSS px; `scale` is px per cm; `bulge` puffs the cheeks. */
@@ -90,13 +105,21 @@ export function drawIllustration(ctx: CanvasRenderingContext2D, G: Profile, f: H
 
   // the cavities cut out of it: the nose, and the air from the vocal folds to the lips
   shape(ctx, P, G.nasal, C.air, C.headLine, 1);
+  // the nasopharynx: the nose's air space runs down behind the soft palate to the throat (the soft
+  // palate, drawn over it below, closes or opens the way); it overlaps the nasal cavity's back edge
+  const naso = nasopharynx(G, f);
+  if (naso) {
+    shape(ctx, P, naso.space, C.air, null);
+    shape(ctx, P, naso.wall, null, C.headLine, 1.2, false);
+  }
   // the engine's cross-sections start a little above the glottis: the air reaches down to the folds
   if (f.grid.length > 1) shape(ctx, P, [f.glottis, ...f.grid.map((g) => g.inner), ...f.grid.map((g) => g.outer).reverse(), G.glottisWall[0]], C.air, null);
   // the windpipe, an air tube below the vocal folds
   const [tb, tf] = G.trachea;
   if (tb && tf) shape(ctx, P, [tb[0], tb[1], tf[1], tf[0]], C.air, null);
-  // the airway's walls: the roof of the mouth and the back of the throat, and the front of the throat
-  shape(ctx, P, G.palOral, null, C.headLine, 1.2, false);
+  // the hard palate: a solid shelf between mouth and nose, both of its surfaces drawn
+  shape(ctx, P, [...G.palOral, ...G.palNasal.slice().reverse()], C.palate, C.headLine, 1.2);
+  // the airway's walls: the back of the throat, and the front of the throat
   shape(ctx, P, G.outerWall, null, C.headLine, 1.2, false);
   shape(ctx, P, f.inner, null, C.headLine, 1, false);
   // the windpipe below the vocal folds
@@ -104,10 +127,22 @@ export function drawIllustration(ctx: CanvasRenderingContext2D, G: Profile, f: H
   shape(ctx, P, f.epiglottis.slice(0, 3), null, C.headLine, 2, false);
   for (const fo of G.folds) shape(ctx, P, fo, C.folds, C.lipsLine, 1);
 
-  // what moves when you speak, in colour
-  band(ctx, soft(f.velum, 3), 0.42 * scale, C.velum, C.velumLine);
-  shape(ctx, P, f.upperTeeth, C.teeth, C.teethLine, 1);
-  shape(ctx, P, G.lowerTeeth, C.teeth, C.teethLine, 1);
+  // the nostril's wing on the side of the nose
+  const nose = G.nasal.reduce((b, p) => (p.x > b.x ? p : b), G.nasal[0]);
+  if (nose) {
+    const [nx, ny] = P({ x: nose.x + 0.05, y: nose.y + 0.15 });
+    ctx.beginPath();
+    ctx.ellipse(nx, ny, 0.6 * scale, 0.42 * scale, -0.2, Math.PI * 0.95, Math.PI * 2.05);
+    ctx.strokeStyle = C.headLine;
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+  }
+
+  // what moves when you speak, in colour. The soft palate is the engine's closed outline (its top
+  // surface back to the uvula, then its underside forward): one tapered flap from the hard palate.
+  shape(ctx, P, soft(f.velum, 2), C.velum, C.velumLine, 1.5, true, true);
+  shape(ctx, P, soft(f.upperTeeth, 2), C.teeth, C.teethLine, 1, true, true);
+  shape(ctx, P, soft(G.lowerTeeth, 2), C.teeth, C.teethLine, 1, true, true);
   shape(ctx, P, f.tongue, C.tongue, C.tongueLine, 1.8);
   shape(ctx, P, soft(bulge(f.upperLip)), C.lips, C.lipsLine, 1.5, true, true);
   shape(ctx, P, soft(bulge(f.lowerLip)), C.lips, C.lipsLine, 1.5, true, true);
@@ -271,7 +306,8 @@ export function drawPartNames(ctx: CanvasRenderingContext2D, G: Profile, f: Huma
   at(G.palOral[Math.floor(G.palOral.length / 2)], 0, 0.3, "Hard palate");
   at(f.velum[Math.floor(f.velum.length / 2)], -0.4, -0.75, "Soft palate");
   at(mid(G.nasal), 0.2, 0.2, "Nasal cavity");
-  const g = f.grid[Math.floor(f.grid.length * 0.22)];
+  // low in the throat, clear of the soft palate's name when it hangs down
+  const g = f.grid[Math.floor(f.grid.length * 0.12)];
   if (g) at({ x: (g.inner.x + g.outer.x) / 2, y: (g.inner.y + g.outer.y) / 2 }, -0.1, 0, "Pharynx");
   at(f.glottis, -1.6, 0, "Vocal folds");
   ctx.restore();

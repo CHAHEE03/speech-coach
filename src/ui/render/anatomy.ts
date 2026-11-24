@@ -95,7 +95,12 @@ const ECHO_AGES = [0.09, 0.06, 0.03];
  * and reaches back to -8.7 cm; each bound has a little air. (VIEW, profile.ts's tighter crop
  * around the airway, is the duet page's.)
  */
-const HEAD = { x0: -9.4, x1: VIEW.x1, y0: VIEW.y0, y1: 23.5 };
+const WHOLE_HEAD = { x0: -9.4, x1: VIEW.x1, y0: VIEW.y0, y1: 23.5 };
+/**
+ * The teaching drawing's frame: the mouth, nose and throat, from just above the eye down, so the
+ * parts that make speech are about a third bigger. The skull's top runs off the top edge.
+ */
+const MOUTH_AND_THROAT = { x0: -7.4, x1: VIEW.x1 + 0.4, y0: VIEW.y0, y1: 17.2 };
 
 const smoothstep = (a: number, b: number, x: number): number => {
   const t = Math.max(0, Math.min(1, (x - a) / (b - a)));
@@ -168,6 +173,8 @@ export class AnatomyRenderer {
   /** air leaving the lips (see drawLipPuffs), body cm */
   private puffs: { x: number; y: number; vx: number; vy: number; r: number; life: number }[] = [];
   private puffDebt = 0;
+  /** framed on the mouth and throat (the drawing) rather than the whole head (Neon) */
+  private tight = false;
   /** the lips' airflow, as bursts (see burst.ts): a full one at 500 cm³/s above the recent average */
   private lipBurst = new BurstEnvelope(500);
   private nasalAir = new NasalAirflow();
@@ -192,6 +199,7 @@ export class AnatomyRenderer {
     // A tall desktop screen keeps them beside it: the head is then fitted to the width and centred,
     // leaving room above and below, where the compact rows ran over the skull.
     this.compact = w < 560;
+    const HEAD = this.tight ? MOUTH_AND_THROAT : WHOLE_HEAD;
     const padX = 12, padT = this.compact ? 62 : 10, padB = this.compact ? 92 : 8;
     this.scale = Math.max(1, Math.min((w - 2 * padX) / (HEAD.x1 - HEAD.x0), (h - padT - padB) / (HEAD.y1 - HEAD.y0)));
     // left-aligned when there is room to spare, so the readouts get the space in front of the face
@@ -267,6 +275,11 @@ export class AnatomyRenderer {
     const pts = (v: Vec[]) => v.map((p) => this.P(p));
     const line = (v: Vec[], color: string, w: number, o: { alpha?: number; hot?: boolean; close?: boolean } = {}) => beamPts(ctx, pts(v), color, w, o);
 
+    // the drawing frames the mouth and throat; Neon keeps the whole head (refit when the look changes)
+    if (!!view.illustration !== this.tight) {
+      this.tight = !!view.illustration;
+      this.resize(this.w, this.h);
+    }
     if (view.illustration) {
       const bulge = puffProfile(f, model.tract.scale, this.face.puff);
       drawIllustration(ctx, G, f, (p) => this.P(p), this.scale, (v) => (bulge ? v.map(bulge) : v));
@@ -707,7 +720,11 @@ export class AnatomyRenderer {
   }
 
   private drawReadouts(ctx: CanvasRenderingContext2D, formants: number[], info: string[], slots: Slot[]): void {
-    // the slots sit in the empty space under the chin and in front of the neck
-    drawReadouts(ctx, { w: this.w, h: this.h, compact: this.compact, slotX: this.X({ x: 3.35, y: 0 }), slotY: this.Y({ x: 0, y: 2.05 }) }, formants, info, slots);
+    // the slots sit in the empty space under the chin and in front of the neck. The drawing's closer
+    // frame pushes that space off the bottom, so there they sit in front of the face, kept on screen
+    // (the 2×2 grid needs ~120 px)
+    const slotX = this.tight ? this.X({ x: 8.6, y: 0 }) : this.X({ x: 3.35, y: 0 });
+    const slotY = this.tight ? Math.min(this.Y({ x: 0, y: 2.05 }), this.h - 124) : this.Y({ x: 0, y: 2.05 });
+    drawReadouts(ctx, { w: this.w, h: this.h, compact: this.compact, slotX, slotY }, formants, info, slots);
   }
 }
