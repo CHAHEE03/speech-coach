@@ -13,7 +13,8 @@ import type { HumanArtic, HumanFrame } from "../../wasm/types.ts";
 import type { Vec } from "./geom.ts";
 import type { TelemetryMessage } from "../../worklet/protocol.ts";
 import type { VoiceModel } from "../analysis.ts";
-import { V, heat, pressureLevel } from "../colors.ts";
+import { V, heat, mix, pressureLevel } from "../colors.ts";
+import { t } from "../i18n.ts";
 import { beam, beamPts, chaikin, dot, handle, label, ring, seg, type Pt } from "./vector.ts";
 import { buildProfile, Gaze, jawFn, VIEW, type Profile } from "./profile.ts";
 import { drawReadouts, type Slot } from "./readouts.ts";
@@ -258,9 +259,25 @@ export class AnatomyRenderer {
     if (view.illustration) {
       const bulge = puffProfile(f, model.tract.scale, this.face.puff);
       drawIllustration(ctx, G, f, (p) => this.P(p), this.scale, (v) => (bulge ? v.map(bulge) : v));
+      if (view.pressure && tele) this.drawPressure(ctx, model, f, tele, ILLUSTRATION.pressure);
+      else if (!view.pressure && view.grid) {
+        ctx.save();
+        ctx.globalCompositeOperation = "source-over";
+        ctx.globalAlpha = 0.7;
+        ctx.strokeStyle = ILLUSTRATION.grid;
+        ctx.lineWidth = 0.9;
+        const grid = new Path2D();
+        for (const g of f.grid) {
+          grid.moveTo(this.X(g.inner), this.Y(g.inner));
+          grid.lineTo(this.X(g.outer), this.Y(g.outer));
+        }
+        ctx.stroke(grid);
+        ctx.restore();
+      }
       // airflow and the noise of a hiss, in solid ink (added light would vanish on the white air)
       if (view.particles && tele) this.drawParticles(ctx, model, f, tele, opts.dt, ILLUSTRATION.flow);
       if (tele) this.drawTurbulence(ctx, model, f, tele, ILLUSTRATION.noise);
+      if (view.calipers) this.drawCalipers(ctx, f, ILLUSTRATION.caliper);
       if (view.labels) drawPartNames(ctx, G, f, (p) => this.P(p), this.scale);
       const ringOf: Record<HandleId, string> = { tongue: ILLUSTRATION.tongueLine, tip: ILLUSTRATION.tongueLine, jaw: ILLUSTRATION.headLine, lips: ILLUSTRATION.lipsLine, velum: ILLUSTRATION.velumLine, larynx: ILLUSTRATION.headLine };
       for (const h of this.handles(model, f, a)) {
@@ -403,13 +420,28 @@ export class AnatomyRenderer {
     return values[best] ?? 0;
   }
 
-  private drawPressure(ctx: CanvasRenderingContext2D, model: VoiceModel, f: HumanFrame, tele: TelemetryMessage): void {
+  /** `ink`: a solid pressure ramp for the illustration's white airway. */
+  private drawPressure(ctx: CanvasRenderingContext2D, model: VoiceModel, f: HumanFrame, tele: TelemetryMessage, ink?: readonly [string, string, string]): void {
     const t = tele.t;
     const nodeS = model.nodeS(t.phLen, t.orLen);
     if (nodeS.length !== t.pressureRms.length) return;
     for (const g of f.grid) {
       const lvl = Math.pow(pressureLevel(this.nodeValueAtS(t.pressureRms, nodeS, g.s)), 0.85);
-      seg(ctx, this.X(g.inner), this.Y(g.inner), this.X(g.outer), this.Y(g.outer), heat(lvl), 1.15, { alpha: 0.35 + 0.65 * lvl });
+      if (!ink) {
+        seg(ctx, this.X(g.inner), this.Y(g.inner), this.X(g.outer), this.Y(g.outer), heat(lvl), 1.15, { alpha: 0.35 + 0.65 * lvl });
+        continue;
+      }
+      ctx.save();
+      ctx.globalCompositeOperation = "source-over";
+      ctx.globalAlpha = 0.5 + 0.5 * lvl;
+      ctx.strokeStyle = lvl < 0.5 ? mix(ink[0], ink[1], lvl * 2) : mix(ink[1], ink[2], (lvl - 0.5) * 2);
+      ctx.lineWidth = 2.5;
+      ctx.lineCap = "round";
+      ctx.beginPath();
+      ctx.moveTo(this.X(g.inner), this.Y(g.inner));
+      ctx.lineTo(this.X(g.outer), this.Y(g.outer));
+      ctx.stroke();
+      ctx.restore();
     }
   }
 
@@ -491,20 +523,61 @@ export class AnatomyRenderer {
     }
   }
 
-  private drawCalipers(ctx: CanvasRenderingContext2D, f: HumanFrame): void {
+  private drawCalipers(ctx: CanvasRenderingContext2D, f: HumanFrame, ink?: string): void {
     let mi = -1, ma = Infinity;
     for (let i = 2; i < f.grid.length - 1; i++) if (f.grid[i].area < ma) { ma = f.grid[i].area; mi = i; }
     if (mi < 0 || ma >= 1.2) return;
     const g = f.grid[mi];
     const [x0, y0] = this.P(g.inner), [x1, y1] = this.P(g.outer);
-    seg(ctx, x0, y0, x1, y1, V.white, 1.4, { hot: true });
     const nx = -(y1 - y0), ny = x1 - x0, nl = Math.hypot(nx, ny) || 1;
-    for (const [x, y] of [[x0, y0], [x1, y1]]) seg(ctx, x - (nx / nl) * 4, y - (ny / nl) * 4, x + (nx / nl) * 4, y + (ny / nl) * 4, V.white, 1.2);
+    if (ink) {
+      const caliper = new Path2D();
+      caliper.moveTo(x0, y0);
+      caliper.lineTo(x1, y1);
+      // A closed section still needs visible end ticks when its endpoints coincide.
+      const tx = nx || ny ? nx / nl : 1, ty = ny / nl;
+      for (const [x, y] of [[x0, y0], [x1, y1]]) {
+        caliper.moveTo(x - tx * 4, y - ty * 4);
+        caliper.lineTo(x + tx * 4, y + ty * 4);
+      }
+      ctx.save();
+      ctx.globalCompositeOperation = "source-over";
+      ctx.globalAlpha = 1;
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      ctx.strokeStyle = ILLUSTRATION.halo;
+      ctx.lineWidth = 5;
+      ctx.stroke(caliper);
+      ctx.strokeStyle = ink;
+      ctx.lineWidth = 1.5;
+      ctx.stroke(caliper);
+      ctx.restore();
+    } else {
+      seg(ctx, x0, y0, x1, y1, V.white, 1.4, { hot: true });
+      for (const [x, y] of [[x0, y0], [x1, y1]]) seg(ctx, x - (nx / nl) * 4, y - (ny / nl) * 4, x + (nx / nl) * 4, y + (ny / nl) * 4, V.white, 1.2);
+    }
     // at the lips, in front of them is where Sing and Speak write the words: the label goes behind
     const end = f.grid[f.grid.length - 1];
     const lipsX = Math.max(this.P(end.inner)[0], this.P(end.outer)[0]);
     const atLips = lipsX - Math.max(x0, x1) < 1.5 * this.pxPerCm;
     const lx = atLips ? Math.min(x0, x1) - 10 : Math.max(x0, x1) + 10, ly = Math.min(y0, y1) - 4;
+    if (ink) {
+      const text = t(ma <= 0.0005 ? "CLOSED" : `${ma.toFixed(2)} cm²`);
+      ctx.save();
+      ctx.globalCompositeOperation = "source-over";
+      ctx.globalAlpha = 1;
+      ctx.font = '600 12px "Archivo", "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", system-ui, sans-serif';
+      ctx.textAlign = atLips ? "right" : "left";
+      ctx.textBaseline = "alphabetic";
+      ctx.lineJoin = "round";
+      ctx.strokeStyle = ILLUSTRATION.halo;
+      ctx.lineWidth = 4;
+      ctx.strokeText(text, lx, ly);
+      ctx.fillStyle = ink;
+      ctx.fillText(text, lx, ly);
+      ctx.restore();
+      return;
+    }
     label(ctx, ma <= 0.0005 ? "CLOSED" : `${ma.toFixed(2)} CM²`, lx, ly, { size: 11, color: V.white, ls: 0.12, align: atLips ? "right" : "left" });
   }
 
