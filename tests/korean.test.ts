@@ -6,7 +6,8 @@ import { describe, expect, test } from "bun:test";
 import { initEngine } from "./harness.ts";
 
 await initEngine();
-const { koreanPhrases, between } = await import("../src/ui/korean.ts");
+const { koreanPhrases, between, REFERENCE } = await import("../src/ui/korean.ts");
+const { existsSync } = await import("node:fs");
 const { planPhrases } = await import("../src/wasm/engine.ts");
 const male = { female: 0, child: 0 };
 
@@ -50,6 +51,10 @@ describe("between: the consonant chart's words", () => {
 
   test("each one is speakable", () => {
     for (const c of "ㄱㄲㅋㄷㄸㅌㅂㅃㅍㅈㅉㅊㅅㅆㅎㅁㄴㅇㄹ") expect(koreanPhrases(between(c, "ㅏ"))[0].segments.length).toBeGreaterThanOrEqual(3);
+  });
+
+  test("every textbook drawing the chart shows is in public/sagittal", () => {
+    for (const file of Object.values(REFERENCE)) expect(existsSync(new URL(`../public/sagittal/${file}.svg`, import.meta.url))).toBe(true);
   });
 
   test("anything else is refused", () => {

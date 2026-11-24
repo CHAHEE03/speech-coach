@@ -6,6 +6,18 @@ const MEDIALS = "ㅏㅐㅑㅒㅓㅔㅕㅖㅗㅘㅙㅚㅛㅜㅝㅞㅟㅠㅡㅢㅣ
 const NG_CODA = 21;
 const syllable = (onset: number, medial: number, coda = 0) => String.fromCharCode(0xac00 + (onset * 21 + medial) * 28 + coda);
 
+/**
+ * The textbook drawing (public/sagittal, Wright & McCloy, CC0) whose tongue and lips match each
+ * consonant's closure. ㅈㅉㅊ, ㅎ and ㄹ have none in that set.
+ */
+export const REFERENCE: Record<string, string> = {
+  ㅂ: "p", ㅃ: "p", ㅍ: "p",
+  ㄷ: "t", ㄸ: "t", ㅌ: "t",
+  ㄱ: "k", ㄲ: "k", ㅋ: "k",
+  ㅁ: "m", ㄴ: "n", ㅇ: "ng",
+  ㅅ: "s", ㅆ: "s",
+};
+
 /** A consonant said between two vowels, as Hangul: ㅂ with ㅏ is 아바. ㅇ sounds only at the end of a syllable, so it is 앙아. */
 export function between(consonant: string, vowel: string): string {
   const c = ONSETS.indexOf(consonant), v = MEDIALS.indexOf(vowel);

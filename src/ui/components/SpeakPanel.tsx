@@ -5,7 +5,7 @@ import { useStore } from "../store.ts";
 import { speakText, speakPhrases, stopSpeaking, onPlan, currentPlan, spokenWordNow, speakingNow, useSpeech, type SpeakLang } from "../speech.ts";
 import { mouthWords } from "../mouthWords.ts";
 import { tokenizeIpa } from "../../wasm/engine.ts";
-import { between, koreanPhrases } from "../korean.ts";
+import { between, koreanPhrases, REFERENCE } from "../korean.ts";
 import { Menu, Slider } from "./Controls.tsx";
 import { Chip, Screen } from "./Screen.tsx";
 import { LangPick } from "./LangPick.tsx";
@@ -169,6 +169,22 @@ function KoreanChart(props: { onPad: (c: string) => void; sounding: string | nul
         </tbody>
       </table>
     </div>
+  );
+}
+
+/** The textbook drawing of the consonant last pressed, beside the live head (public/sagittal, CC0). */
+function ReferenceDrawing(props: { consonant: string | null }) {
+  const c = props.consonant;
+  const file = c ? REFERENCE[c] : undefined;
+  return (
+    <figure className="ref-figure">
+      <div className="ref-crop">{file && <img src={`/sagittal/${file}.svg`} alt={`${t("Textbook drawing")}: ${c}`} />}</div>
+      <figcaption>
+        <strong>{c ? `${c} · ${t("Textbook drawing")}` : t("Textbook drawing")}</strong>
+        <span>{!c ? t("Press a consonant to see its drawing") : file ? t("Compare it with the moving head") : t("No drawing for this sound yet")}</span>
+        <small>Wright &amp; McCloy, CC0</small>
+      </figcaption>
+    </figure>
   );
 }
 
@@ -346,7 +362,14 @@ export function SpeakRight() {
           </div>
         }
       >
-        {korean ? <KoreanChart onPad={(c) => void koPad(c)} sounding={speaking ? koPressed : null} /> : <ConsonantChart onPad={(c) => void pad(c)} />}
+        {korean ? (
+          <>
+            <KoreanChart onPad={(c) => void koPad(c)} sounding={speaking ? koPressed : null} />
+            <ReferenceDrawing consonant={koPressed} />
+          </>
+        ) : (
+          <ConsonantChart onPad={(c) => void pad(c)} />
+        )}
       </Screen>
       <Screen className="s-tube" title="Tube" sub="Glottis to lips">
         <TubeView />

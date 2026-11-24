@@ -9,14 +9,16 @@ against Korean targets, so feedback comes through the eyes instead of the ears.
 
 ## What's here
 
-- **Mouth and tongue**: a live cross-section of the vocal tract, drawn like a textbook illustration
-  with the parts named (drag the tongue, lips, jaw, soft palate); CHIMERA's glowing-line look is a
-  toggle (Neon), and a 3D head turns to show the front. Sound pressure, airflow, measurements and a
-  grid can be shown on it.
+- **Mouth and tongue**: a live cross-section of the vocal tract as a simple teaching drawing: a plain
+  silhouette with the mouth, nose and throat cut out, colour only on what moves (tongue, lips, soft
+  palate), the parts named. Drag the tongue, lips, jaw or soft palate. CHIMERA's glowing-line look
+  (with sound pressure, airflow, measurements and a grid) is a toggle (Neon), and a 3D head turns to
+  show the front.
 - **Vowels**: an F1/F2 map with the Korean vowels ㅣ ㅏ ㅓ ㅗ ㅜ ㅡ. Press **Mic** and say a vowel:
   your voice shows as an amber point, and the nearest target lights up.
 - **Speak**: type Korean (or English, or IPA) and watch the mouth say it, slowed down if you like,
-  with the gestural score, a consonant chart, the tube and the vocal folds.
+  with the gestural score, the tube and the vocal folds. A Korean consonant chart says each
+  consonant between two vowels and shows its textbook drawing beside the moving head.
 - **Sound**: the spectrum and spectrogram of the voice.
 - **Voice**: dials for pitch, breath, tone, mouth, tongue and throat.
 - Korean and English interface (한국어 / EN).
@@ -39,3 +41,7 @@ The voice engine (`crates/chimera`, `crates/chimera-wasm`) and the head drawing 
 [CHIMERA](https://github.com/jamesondh/chimera-vocal-synth) by Jameson Hodge, MIT licensed
 (see [LICENSE](LICENSE)). The engine crates are kept unchanged so updates can be copied in.
 The fonts in `public/fonts/` keep their own licenses (see the files there).
+
+The textbook drawings in `public/sagittal/` are by Richard Wright and Dan McCloy (University of
+Washington), from [phonetics-teaching-assets](https://github.com/drammock/phonetics-teaching-assets),
+CC0 1.0. The live drawing follows their style.

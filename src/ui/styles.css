@@ -132,6 +132,47 @@ button {
   min-height: 0;
 }
 
+/* the textbook drawing under the Korean chart */
+.ref-figure {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 10px 12px 12px;
+}
+
+/* the drawings show the whole head: crop to the mouth and throat (they share one layout, 173 × 245 mm) */
+.ref-crop {
+  flex: none;
+  position: relative;
+  width: 170px;
+  height: 190px;
+  overflow: hidden;
+  background: #fff;
+  border-radius: 8px;
+}
+
+.ref-crop img {
+  position: absolute;
+  width: 280px;
+  left: -110px;
+  top: -95px;
+}
+
+.ref-figure figcaption {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ref-figure strong {
+  font-size: 17px;
+}
+
+.ref-figure small {
+  color: var(--text-dim);
+  font-size: 12px;
+}
+
 /* a long subtitle wraps under the title instead of squeezing it */
 .screen-head {
   flex-wrap: wrap;

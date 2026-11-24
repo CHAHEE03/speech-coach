@@ -18,7 +18,7 @@ import { beam, beamPts, chaikin, dot, handle, label, ring, seg, type Pt } from "
 import { buildProfile, Gaze, jawFn, VIEW, type Profile } from "./profile.ts";
 import { drawReadouts, type Slot } from "./readouts.ts";
 import { Expression } from "./expression.ts";
-import { drawIllustration, drawPartNames, ILLUSTRATION } from "./illustration.ts";
+import { drawDot, drawIllustration, drawPartNames, ILLUSTRATION } from "./illustration.ts";
 
 export { ILLUSTRATION };
 
@@ -258,13 +258,13 @@ export class AnatomyRenderer {
     if (view.illustration) {
       const bulge = puffProfile(f, model.tract.scale, this.face.puff);
       drawIllustration(ctx, G, f, (p) => this.P(p), this.scale, (v) => (bulge ? v.map(bulge) : v));
-      if (view.pressure && tele) this.drawPressure(ctx, model, f, tele);
-      else if (view.grid) for (const gs of f.grid) seg(ctx, this.X(gs.inner), this.Y(gs.inner), this.X(gs.outer), this.Y(gs.outer), V.blueDim, 0.9, { alpha: 0.7 });
-      if (view.particles && tele) this.drawParticles(ctx, model, f, tele, opts.dt);
-      if (tele) this.drawTurbulence(ctx, model, f, tele);
+      // the physics overlays draw additively and vanish on the white air: they stay with the Neon look
       if (view.labels) drawPartNames(ctx, G, f, (p) => this.P(p), this.scale);
-      if (view.calipers) this.drawCalipers(ctx, f);
-      this.drawHandles(ctx, model, f, a, opts.hover, opts.drag);
+      const ringOf: Record<HandleId, string> = { tongue: ILLUSTRATION.tongueLine, tip: ILLUSTRATION.tongueLine, jaw: ILLUSTRATION.headLine, lips: ILLUSTRATION.lipsLine, velum: ILLUSTRATION.velumLine, larynx: ILLUSTRATION.headLine };
+      for (const h of this.handles(model, f, a)) {
+        const active = h.id === opts.drag || h.id === opts.hover;
+        drawDot(ctx, this.X(h.pos), this.Y(h.pos), ringOf[h.id], h.id === "tongue" ? 6 : 4.5, active);
+      }
       this.drawReadouts(ctx, opts.formants, opts.info, opts.slots);
       return;
     }
