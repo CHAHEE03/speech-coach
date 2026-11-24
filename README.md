@@ -13,7 +13,11 @@ against Korean targets, so feedback comes through the eyes instead of the ears.
   silhouette with the mouth, nose and throat cut out, colour only on what moves (tongue, lips, soft
   palate), the parts named. Drag the tongue, lips, jaw or soft palate. CHIMERA's glowing-line look
   (with sound pressure, airflow, measurements and a grid) is a toggle (Neon), and a 3D head turns to
-  show the front.
+  show the front. When the soft palate opens and air flows (ㅁ ㄴ ㅇ), a blue stream leaves through
+  the nose.
+- **Front view**: the mouth from the front, from the same movement: lips spread or rounded, how
+  far they open, the gap between the front teeth, the tongue, and air from the nostrils for a
+  nasal sound. A mirror to copy.
 - **Vowels**: an F1/F2 map with the Korean vowels ㅣ ㅏ ㅓ ㅗ ㅜ ㅡ. Press **Mic** and say a vowel:
   your voice shows as an amber point, and the nearest target lights up.
 - **Speak**: type Korean (or English, or IPA) and watch the mouth say it, slowed down if you like,

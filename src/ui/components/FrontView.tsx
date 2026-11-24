@@ -1,0 +1,175 @@
+/**
+ * The mouth from the front, drawn from the same articulation that moves the side view: the lips'
+ * opening (lipAp, cm), their spread or rounding (lipWidth 0 round … 1 spread) and protrusion
+ * (lipProt), the gap between the front teeth (jaw, cm at the incisors), and the tongue's tip
+ * (ttY: high for ㄴ ㄷ ㄹ). When the soft palate is open and air is flowing, puffs leave the
+ * nostrils. A mirror for the learner: copy the shape.
+ */
+import { useRef } from "react";
+import { engine } from "../../audio/AudioEngine.ts";
+import { VoiceModel } from "../analysis.ts";
+import { sameBody } from "../body.ts";
+import { t } from "../i18n.ts";
+import { ILLUSTRATION as C } from "../render/illustration.ts";
+import { useStore } from "../store.ts";
+import { useCanvasLoop } from "../useCanvas.ts";
+import { useModel } from "../useModel.ts";
+import { frontShape } from "../front.ts";
+
+const clamp = (x: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, x));
+
+export function FrontView() {
+  const model = useModel();
+  const clockRef = useRef(0);
+  const ref = useCanvasLoop(({ ctx, w, h, dt }) => {
+    const clock = (clockRef.current += dt);
+    ctx.clearRect(0, 0, w, h);
+    ctx.fillStyle = C.page;
+    ctx.fillRect(0, 0, w, h);
+    const st = useStore.getState();
+    const tele = engine.latest && sameBody(engine.latest.body, st.body) ? engine.latest : null;
+    const a = tele ? VoiceModel.articFromArray(tele.t.artic) : st.artic;
+    const m = model.current;
+    const port = tele ? tele.t.velumPort : m ? m.frame(a).velumPort : 0;
+    const breathing = !!tele && tele.t.gate > 0.5 && tele.t.pLung > 1;
+    const s = frontShape(a);
+
+    // fit the lower face (about 12 × 11 cm) into the screen
+    const k = Math.min(w / 13, h / 11.5);
+    const cx = w / 2, cy = h * 0.5;
+    const X = (x: number) => cx + x * k, Y = (y: number) => cy - y * k;
+
+    // face: from under the eyes to the chin, the chin dropping with the jaw
+    const chin = s.lowerEdge - 2.2 - 0.55 * s.jaw;
+    ctx.beginPath();
+    ctx.ellipse(X(0), Y((4.6 + chin) / 2), 5.6 * k, ((4.6 - chin) / 2) * k, 0, 0, Math.PI * 2);
+    ctx.fillStyle = C.head;
+    ctx.fill();
+    ctx.strokeStyle = C.headLine;
+    ctx.lineWidth = 1.4;
+    ctx.stroke();
+
+    // nose: its base and two nostrils
+    const noseY = 2.6;
+    ctx.beginPath();
+    ctx.moveTo(X(-1.6), Y(noseY + 0.2));
+    ctx.quadraticCurveTo(X(0), Y(noseY - 0.5), X(1.6), Y(noseY + 0.2));
+    ctx.strokeStyle = C.headLine;
+    ctx.lineWidth = 1.4;
+    ctx.stroke();
+    const nostrils = [-0.65, 0.65].map((x) => ({ x, y: noseY + 0.05 }));
+    for (const n of nostrils) {
+      ctx.beginPath();
+      ctx.ellipse(X(n.x), Y(n.y), 0.42 * k, 0.2 * k, n.x < 0 ? 0.25 : -0.25, 0, Math.PI * 2);
+      ctx.fillStyle = "#8c7466";
+      ctx.fill();
+    }
+    // the groove from the nose to the lip
+    ctx.beginPath();
+    ctx.moveTo(X(-0.35), Y(noseY - 0.35));
+    ctx.lineTo(X(-0.3), Y(s.upperEdge + 0.75));
+    ctx.moveTo(X(0.35), Y(noseY - 0.35));
+    ctx.lineTo(X(0.3), Y(s.upperEdge + 0.75));
+    ctx.strokeStyle = "rgba(140, 129, 120, 0.5)";
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // the lips: one rounded shape around the opening, fuller when pushed out
+    const lipsTop = s.upperEdge + 0.75 + 0.25 * s.prot, lipsBottom = s.lowerEdge - 0.9 - 0.25 * s.prot;
+    ctx.beginPath();
+    ctx.ellipse(X(0), Y((lipsTop + lipsBottom) / 2), (s.lipsW / 2) * k, ((lipsTop - lipsBottom) / 2) * k, 0, 0, Math.PI * 2);
+    ctx.fillStyle = C.lips;
+    ctx.fill();
+    ctx.strokeStyle = C.lipsLine;
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // the opening, with what shows through it: the mouth's dark inside, the tongue, the teeth
+    if (s.open > 0.02 && s.openW > 0.05) {
+      const oy = (s.upperEdge + s.lowerEdge) / 2;
+      ctx.save();
+      ctx.beginPath();
+      ctx.ellipse(X(0), Y(oy), (s.openW / 2) * k, (s.open / 2) * k, 0, 0, Math.PI * 2);
+      ctx.fillStyle = "#4a2329";
+      ctx.fill();
+      ctx.clip();
+      // tongue
+      ctx.beginPath();
+      ctx.ellipse(X(0), Y(s.tongueTop - 1.2), 1.9 * k, 1.2 * k, 0, 0, Math.PI * 2);
+      ctx.fillStyle = C.tongue;
+      ctx.fill();
+      ctx.strokeStyle = C.tongueLine;
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+      // teeth: six upper incisors and canines hanging down, six lower standing up
+      const tooth = (x: number, edge: number, up: boolean) => {
+        const tw = 0.56, th = 1.0;
+        const y0 = up ? edge : edge - th;
+        ctx.beginPath();
+        ctx.roundRect(X(x - tw / 2), Y(y0 + th), tw * k, th * k, [up ? 0 : 3, up ? 0 : 3, up ? 3 : 0, up ? 3 : 0]);
+        ctx.fillStyle = C.teeth;
+        ctx.fill();
+        ctx.strokeStyle = C.teethLine;
+        ctx.lineWidth = 0.8;
+        ctx.stroke();
+      };
+      for (const x of [-1.45, -0.87, -0.29, 0.29, 0.87, 1.45]) {
+        tooth(x, s.upperTeeth, true);
+        tooth(x * 0.92, s.lowerTeeth, false);
+      }
+      ctx.restore();
+      ctx.beginPath();
+      ctx.ellipse(X(0), Y(oy), (s.openW / 2) * k, (s.open / 2) * k, 0, 0, Math.PI * 2);
+      ctx.strokeStyle = C.lipsLine;
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    } else {
+      // closed lips: the line where they meet
+      ctx.beginPath();
+      ctx.moveTo(X(-s.lipsW / 2 + 0.15), Y(s.upperEdge));
+      ctx.quadraticCurveTo(X(0), Y(s.upperEdge - 0.12), X(s.lipsW / 2 - 0.15), Y(s.upperEdge));
+      ctx.strokeStyle = C.lipsLine;
+      ctx.lineWidth = 1.6;
+      ctx.stroke();
+    }
+
+    // air through the nose: puffs from the nostrils while the soft palate is open and air flows
+    const nasal = breathing ? clamp(port / 0.25, 0, 1) : 0;
+    if (nasal > 0.05) {
+      ctx.save();
+      ctx.strokeStyle = C.flow;
+      ctx.lineCap = "round";
+      for (const n of nostrils) {
+        for (let i = 0; i < 3; i++) {
+          const u = (clock * 1.6 + i / 3) % 1;
+          const dir = n.x < 0 ? -1 : 1;
+          const x0 = n.x + dir * (0.2 + 0.9 * u), y0 = n.y - 0.25 - 1.3 * u;
+          ctx.globalAlpha = nasal * (1 - u);
+          ctx.lineWidth = 2.4;
+          ctx.beginPath();
+          ctx.moveTo(X(x0), Y(y0));
+          ctx.lineTo(X(x0 + dir * 0.35), Y(y0 - 0.45));
+          ctx.stroke();
+        }
+      }
+      ctx.restore();
+      label(ctx, t("Air through the nose"), X(0), Y(4.15), k);
+    }
+  });
+  return <canvas ref={ref} className="front-view" role="img" aria-label={t("The mouth from the front: lips, teeth and tongue")} />;
+}
+
+/** Dark text on a white halo, as the side view's part names. */
+function label(ctx: CanvasRenderingContext2D, text: string, x: number, y: number, k: number): void {
+  ctx.save();
+  ctx.font = `700 ${Math.max(12, Math.min(16, 0.5 * k))}px "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", system-ui, sans-serif`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.lineJoin = "round";
+  ctx.lineWidth = 4;
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.92)";
+  ctx.strokeText(text, x, y);
+  ctx.fillStyle = C.text;
+  ctx.fillText(text, x, y);
+  ctx.restore();
+}

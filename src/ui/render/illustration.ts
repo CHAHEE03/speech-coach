@@ -112,6 +112,40 @@ export function drawIllustration(ctx: CanvasRenderingContext2D, G: Profile, f: H
   ctx.restore();
 }
 
+/**
+ * Air through the nose: while the soft palate is open (`amount` 0…1, from the port's area) a dashed
+ * blue stream rises behind it, runs along the nasal cavity and leaves the nose, moving with `clock`.
+ * shortcut: the engine doesn't send the nasal branch's flow to the page, so the stream's strength is
+ * the port's opening alone; read it from the worklet if the nose's flow is ever needed exactly.
+ */
+export function drawNasalFlow(ctx: CanvasRenderingContext2D, G: Profile, f: HumanFrame, P: (p: Vec) => Pt, scale: number, amount: number, clock: number): void {
+  if (amount <= 0.05 || G.nasal.length < 3 || f.velum.length < 2) return;
+  const back = G.nasal.reduce((b, p) => (p.x < b.x ? p : b));
+  const front = G.nasal.reduce((b, p) => (p.x > b.x ? p : b));
+  const centre = mid(G.nasal);
+  const vel = f.velum[Math.floor(f.velum.length / 2)];
+  const wall = G.outerWall.reduce((b, p) => (Math.abs(p.y - vel.y) < Math.abs(b.y - vel.y) ? p : b), G.outerWall[0]);
+  // the port: between the soft palate and the back of the throat
+  const port = { x: (vel.x + wall.x) / 2, y: vel.y };
+  const path = chaikin([port, { x: back.x + 0.4, y: back.y + 0.1 }, { x: centre.x, y: centre.y - 0.15 }, front, { x: front.x + 1.1, y: front.y - 0.6 }].map(P), 3);
+  ctx.save();
+  ctx.globalCompositeOperation = "source-over";
+  ctx.beginPath();
+  path.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)));
+  ctx.strokeStyle = C.flow;
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  ctx.lineWidth = 1.5 + 2.5 * amount;
+  ctx.globalAlpha = 0.35 + 0.55 * amount;
+  ctx.setLineDash([0.5 * scale, 0.45 * scale]);
+  ctx.lineDashOffset = -clock * 3 * scale;
+  ctx.stroke();
+  ctx.restore();
+  // above the nose, clear of the cavity's own name
+  const [tx, ty] = P({ x: front.x + 0.2, y: front.y + 2.1 });
+  tag(ctx, t("Air through the nose"), tx, ty, Math.max(12, Math.min(16, 0.55 * scale)));
+}
+
 /** A part's name: dark text on a white halo, readable on the drawing and on the page. */
 function tag(ctx: CanvasRenderingContext2D, text: string, x: number, y: number, size: number): void {
   ctx.font = `700 ${size}px "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", system-ui, sans-serif`;

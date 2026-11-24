@@ -98,6 +98,32 @@ button {
   }
 }
 
+/* the left column: the side view above, the mouth from the front below it */
+.heads {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  min-height: 0;
+}
+
+.heads > .s-head {
+  flex: 3 1 0;
+}
+
+.heads > .s-front {
+  flex: 2 1 0;
+  min-height: 220px;
+}
+
+.front-view {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
 /* the right column: the tab bar, then that tab's screens, scrolling when they don't fit */
 .side,
 .right-speak {

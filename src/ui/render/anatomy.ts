@@ -19,7 +19,7 @@ import { beam, beamPts, chaikin, dot, handle, label, ring, seg, type Pt } from "
 import { buildProfile, Gaze, jawFn, VIEW, type Profile } from "./profile.ts";
 import { drawReadouts, type Slot } from "./readouts.ts";
 import { Expression } from "./expression.ts";
-import { drawDot, drawIllustration, drawPartNames, ILLUSTRATION } from "./illustration.ts";
+import { drawDot, drawIllustration, drawNasalFlow, drawPartNames, ILLUSTRATION } from "./illustration.ts";
 
 export { ILLUSTRATION };
 
@@ -277,6 +277,8 @@ export class AnatomyRenderer {
       // airflow and the noise of a hiss, in solid ink (added light would vanish on the white air)
       if (view.particles && tele) this.drawParticles(ctx, model, f, tele, opts.dt, ILLUSTRATION.flow);
       if (tele) this.drawTurbulence(ctx, model, f, tele, ILLUSTRATION.noise);
+      // air through the nose whenever the soft palate is open and air flows (ㅁ ㄴ ㅇ, a nasal voice): always shown, it's what's being taught
+      if (tele && tele.t.gate > 0.5 && tele.t.pLung > 1) drawNasalFlow(ctx, G, f, (p) => this.P(p), this.scale, Math.min(1, tele.t.velumPort / 0.25), this.clock);
       if (view.calipers) this.drawCalipers(ctx, f, ILLUSTRATION.caliper);
       if (view.labels) drawPartNames(ctx, G, f, (p) => this.P(p), this.scale);
       const ringOf: Record<HandleId, string> = { tongue: ILLUSTRATION.tongueLine, tip: ILLUSTRATION.tongueLine, jaw: ILLUSTRATION.headLine, lips: ILLUSTRATION.lipsLine, velum: ILLUSTRATION.velumLine, larynx: ILLUSTRATION.headLine };

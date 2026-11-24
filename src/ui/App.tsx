@@ -8,6 +8,7 @@ import { SpeakRight, speechInfo, speechSlots, speechWords } from "./components/S
 import { SpectrumView } from "./components/SpectrumView.tsx";
 import { Spectrogram } from "./components/Spectrogram.tsx";
 import { VoiceControls } from "./components/VoiceControls.tsx";
+import { FrontView } from "./components/FrontView.tsx";
 import { PRESETS, presetOf } from "./body.ts";
 import { lang, setLang, t, type Lang } from "./i18n.ts";
 import type { BodyName } from "../worklet/protocol.ts";
@@ -71,20 +72,25 @@ export function App() {
         <Segmented<Lang> label="Language" value={lang} onChange={setLang} options={[{ value: "ko", label: "한국어" }, { value: "en", label: "EN" }]} />
       </header>
       <main className="screens">
-        <Screen
-          className="s-head"
-          title="Mouth and tongue"
-          tools={
-            <>
-              <ViewToggles />
-              <Chip on={hold} onClick={() => void toggleBreath()}>
-                {starting ? "Starting…" : "Sound"}
-              </Chip>
-            </>
-          }
-        >
-          <Head tab={tab} />
-        </Screen>
+        <div className="heads">
+          <Screen
+            className="s-head"
+            title="Mouth and tongue"
+            tools={
+              <>
+                <ViewToggles />
+                <Chip on={hold} onClick={() => void toggleBreath()}>
+                  {starting ? "Starting…" : "Sound"}
+                </Chip>
+              </>
+            }
+          >
+            <Head tab={tab} />
+          </Screen>
+          <Screen className="s-front" title="Front view">
+            <FrontView />
+          </Screen>
+        </div>
         <div className="side">
           <Segmented<Tab>
             label="Practice"
