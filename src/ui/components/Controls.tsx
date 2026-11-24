@@ -19,7 +19,7 @@ export function Slider(props: {
   return (
     <div className="slider">
       <label htmlFor={id}>
-        <span>{label}</span>
+        <span>{t(label)}</span>
         <output>{format ? format(value) : value.toFixed(2)}</output>
       </label>
       <input
@@ -70,7 +70,7 @@ export function Menu<T extends string>(props: { label: string; value: T; options
       <select aria-label={props.label} value={props.value} onChange={(e) => props.onChange(e.target.value as T)}>
         {props.options.map((o) => (
           <option key={o.value} value={o.value} disabled={o.disabled}>
-            {o.label}
+            {t(o.label)}
           </option>
         ))}
       </select>

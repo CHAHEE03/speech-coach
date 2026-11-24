@@ -94,8 +94,42 @@ button {
 @media (max-width: 820px), (orientation: portrait) {
   .screens {
     grid-template-columns: 1fr;
-    grid-template-rows: 3fr 2fr;
+    grid-template-rows: minmax(420px, 3fr) auto;
   }
+}
+
+/* the right column: the tab bar, then that tab's screens, scrolling when they don't fit */
+.side,
+.right-speak {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  min-height: 0;
+}
+
+.side {
+  overflow-y: auto;
+}
+
+.side > .screen,
+.right-speak > .screen:not(.action-bar) {
+  flex: 1 0 auto;
+}
+
+.s-vowels,
+.s-spec,
+.s-gram,
+.s-score,
+.s-tube,
+.s-folds {
+  min-height: 260px;
+}
+
+.s-say,
+.s-chart,
+.s-voice {
+  min-height: 0;
 }
 
 .screen {

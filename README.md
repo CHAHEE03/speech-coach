@@ -9,9 +9,15 @@ against Korean targets, so feedback comes through the eyes instead of the ears.
 
 ## What's here
 
-- **Mouth and tongue**: a live cross-section of the vocal tract (drag the tongue, lips, jaw, soft palate).
+- **Mouth and tongue**: a live cross-section of the vocal tract (drag the tongue, lips, jaw, soft
+  palate), or a 3D head to turn and see from the front; sound pressure, airflow, measurements and a grid
+  can be shown on it.
 - **Vowels**: an F1/F2 map with the Korean vowels ㅣ ㅏ ㅓ ㅗ ㅜ ㅡ. Press **Mic** and say a vowel:
   your voice shows as an amber point, and the nearest target lights up.
+- **Speak**: type Korean (or English, or IPA) and watch the mouth say it, slowed down if you like,
+  with the gestural score, a consonant chart, the tube and the vocal folds.
+- **Sound**: the spectrum and spectrogram of the voice.
+- **Voice**: dials for pitch, breath, tone, mouth, tongue and throat.
 - Korean and English interface (한국어 / EN).
 
 ## Run it

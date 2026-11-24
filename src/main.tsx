@@ -3,6 +3,7 @@
  * A failed load can be retried.
  */
 import "./ui/styles.css";
+import "./ui/instruments.css";
 import { initChimera } from "./wasm/chimera.ts";
 
 const root = document.getElementById("root")!;
