@@ -379,4 +379,14 @@ mod tests {
         // a glide carries its vowel's tone
         assert_eq!(word_syllables("여우")[0].onset[0].tone, Some(TONE_LOW));
     }
+
+    #[test]
+    fn korean_vowels_share_one_length() {
+        use crate::phonetics::durations::{SegInfo, klatt_durations};
+        // 머 마 므 미: the vowels equal, the last lengthened at the phrase end
+        let segs: Vec<Segment> = word_syllables("머마므미").into_iter().flat_map(|s| [s.onset[0].clone(), s.nucleus]).collect();
+        let d: Vec<f64> = klatt_durations(&segs, |s| SegInfo { vowel: s.tone.is_some(), ..Default::default() }).into_iter().skip(1).step_by(2).collect();
+        assert!(d[0] == d[1] && d[1] == d[2], "{d:?}");
+        assert!(d[3] > 1.5 * d[0], "{d:?}");
+    }
 }

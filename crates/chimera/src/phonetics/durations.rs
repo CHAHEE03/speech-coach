@@ -103,6 +103,9 @@ pub struct SegInfo {
     pub dur: Option<f64>,
 }
 
+/// Inherent / minimum duration (ms) of every Korean vowel (see `klatt_durations`).
+const KOREAN_VOWEL: (f64, f64) = (200.0, 70.0);
+
 /// Durations (s) for one phrase of segments (explicit `dur` values are kept).
 pub fn klatt_durations(segs: &[Segment], info: impl Fn(&Segment) -> SegInfo) -> Vec<f64> {
     let n = segs.len();
@@ -137,7 +140,10 @@ pub fn klatt_durations(segs: &[Segment], info: impl Fn(&Segment) -> SegInfo) -> 
                 return d;
             }
             let fallback = inf[i].dur.unwrap_or(0.08);
-            let (inh0, min0) = table(&s.ipa).unwrap_or((1000.0 * fallback, 600.0 * fallback));
+            // a Korean vowel (its front end gives it a phrase tone) takes one inherent length: Korean
+            // monophthongs differ little in length, and Klatt's English values made ㅓ (as STRUT
+            // /ʌ/) and ㅡ about 60% of ㅏ, a clipped, uneven beat
+            let (inh0, min0) = if inf[i].vowel && s.tone.is_some() { KOREAN_VOWEL } else { table(&s.ipa).unwrap_or((1000.0 * fallback, 600.0 * fallback)) };
             let (inh, mut min, mut p) = (inh0, min0, 1.0f64);
             if inf[i].vowel {
                 let stress = s.stress.unwrap_or(0);
