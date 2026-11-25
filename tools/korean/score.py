@@ -3,9 +3,9 @@ with faster-whisper (multilingual, Korean forced, greedy-equivalent beam, so the
 the same text) and compare with the intended word letter by letter: each Hangul block split into
 its initial, vowel and final (ㄱ, ㅏ, final ㄴ written ㄴ_), so an error names the sound.
 
-usage: python tools/korean/score.py <out> [--model small] [--against earlier/score.json]
+usage: python tools/korean/score.py <out> [--model small|large-v3-turbo|w2v] [--against earlier/score.json]
 
-Writes <out>/score.json: every item (the word, what was heard, its letter errors) and the summary:
+Writes <out>/score.json (score-<model>.json for a model other than small): every item (the word, what was heard, its letter errors) and the summary:
 word accuracy and letter error rate (per kind of word and per voice) and the commonest confusions.
 With --against it prints how the letter error rate moved.
 
@@ -22,7 +22,6 @@ import wave
 from collections import Counter
 
 import numpy as np
-from faster_whisper import WhisperModel
 
 BASE = 0xAC00
 L = "ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ"
@@ -40,6 +39,36 @@ def load16k(path):
     x = x.reshape(-1, ch).mean(axis=1)
     n = int(round(len(x) * 16000 / rate))
     return (np.fft.irfft(np.fft.rfft(x)[: n // 2 + 1], n) * (n / len(x))).astype(np.float32)
+
+
+W2V = "kresnik/wav2vec2-large-xlsr-korean"
+
+
+def recogniser(name):
+    """16 kHz audio → text. "w2v": a Korean wav2vec2 that writes the syllables it hears (CTC, greedy,
+    no language model), so it doesn't round a sound off to a likely word the way Whisper does;
+    needs torch and transformers. Anything else: a faster-whisper model."""
+    if name == "w2v":
+        import torch
+        from transformers import Wav2Vec2ForCTC, Wav2Vec2Processor
+
+        proc, net = Wav2Vec2Processor.from_pretrained(W2V), Wav2Vec2ForCTC.from_pretrained(W2V).eval()
+
+        def hear(x):
+            with torch.inference_mode():
+                logits = net(proc(x, sampling_rate=16000, return_tensors="pt").input_values).logits
+            return proc.batch_decode(logits.argmax(-1))[0].strip()
+
+        return hear
+    from faster_whisper import WhisperModel
+
+    model = WhisperModel(name, device="cpu", compute_type="int8")
+
+    def hear(x):
+        segs, _ = model.transcribe(x, language="ko", beam_size=5, temperature=0.0, condition_on_previous_text=False, without_timestamps=True)
+        return "".join(s.text for s in segs).strip()
+
+    return hear
 
 
 def hangul(text):
@@ -95,12 +124,11 @@ def main():
     model_name = args[args.index("--model") + 1] if "--model" in args else "small"
     against = args[args.index("--against") + 1] if "--against" in args else None
     manifest = json.load(open(os.path.join(out, "manifest.json"), encoding="utf-8"))
-    model = WhisperModel(model_name, device="cpu", compute_type="int8")
+    hear = recogniser(model_name)
 
     items = []
     for k, it in enumerate(manifest):
-        segs, _ = model.transcribe(load16k(os.path.join(out, it["file"])), language="ko", beam_size=5, temperature=0.0, condition_on_previous_text=False, without_timestamps=True)
-        heard = "".join(s.text for s in segs).strip()
+        heard = hear(load16k(os.path.join(out, it["file"])))
         ref, hyp = letters(it["text"]), letters(heard)
         dist, edits = align(ref, hyp)
         items.append({**it, "heard": heard, "exact": hangul(heard) == hangul(it["text"]), "letters": len(ref), "errors": dist, "edits": edits})
@@ -122,7 +150,8 @@ def main():
         "confusions": confusions.most_common(25),
         "items": items,
     }
-    json.dump(result, open(os.path.join(out, "score.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+    # one file per recogniser, so a Whisper and a wav2vec2 score of the same renders sit side by side
+    json.dump(result, open(os.path.join(out, "score.json" if model_name == "small" else f"score-{model_name.replace('/', '_')}.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
 
     a = result["all"]
     print(f"model {model_name}: {a['words']} renders, word accuracy {a['word_accuracy']}%, letter error rate {a['letter_error_rate']}%")
