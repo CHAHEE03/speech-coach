@@ -1,0 +1,2074 @@
+{
+ "model": "small",
+ "all": {
+  "words": 212,
+  "word_accuracy": 15.6,
+  "letter_error_rate": 61.3
+ },
+ "by_body": {
+  "female": {
+   "words": 106,
+   "word_accuracy": 13.2,
+   "letter_error_rate": 65.4
+  },
+  "male": {
+   "words": 106,
+   "word_accuracy": 17.9,
+   "letter_error_rate": 57.2
+  }
+ },
+ "by_kind": {
+  "coda": {
+   "words": 28,
+   "word_accuracy": 0.0,
+   "letter_error_rate": 69.0
+  },
+  "fric": {
+   "words": 18,
+   "word_accuracy": 33.3,
+   "letter_error_rate": 38.2
+  },
+  "liquid": {
+   "words": 30,
+   "word_accuracy": 13.3,
+   "letter_error_rate": 40.6
+  },
+  "nasal": {
+   "words": 12,
+   "word_accuracy": 25.0,
+   "letter_error_rate": 40.6
+  },
+  "phrase": {
+   "words": 20,
+   "word_accuracy": 55.0,
+   "letter_error_rate": 34.4
+  },
+  "rule": {
+   "words": 26,
+   "word_accuracy": 7.7,
+   "letter_error_rate": 69.2
+  },
+  "stop": {
+   "words": 42,
+   "word_accuracy": 4.8,
+   "letter_error_rate": 120.0
+  },
+  "vowel": {
+   "words": 36,
+   "word_accuracy": 13.9,
+   "letter_error_rate": 70.0
+  }
+ },
+ "confusions": [
+  [
+   "∅→ㅣ",
+   18
+  ],
+  [
+   "∅→ㅡ",
+   17
+  ],
+  [
+   "∅→ㅏ",
+   14
+  ],
+  [
+   "∅→ㄹ",
+   13
+  ],
+  [
+   "∅→ㅂ",
+   13
+  ],
+  [
+   "∅→ㅇ",
+   12
+  ],
+  [
+   "ㄷ→ㅌ",
+   10
+  ],
+  [
+   "∅→ㅅ",
+   10
+  ],
+  [
+   "ㅓ→ㅏ",
+   10
+  ],
+  [
+   "ㅏ→ㅓ",
+   9
+  ],
+  [
+   "ㅏ→∅",
+   9
+  ],
+  [
+   "∅→ㅗ",
+   9
+  ],
+  [
+   "ㅂ→ㅍ",
+   8
+  ],
+  [
+   "ㅅ→ㅆ",
+   8
+  ],
+  [
+   "ㄹ→ㄷ",
+   8
+  ],
+  [
+   "∅→ㅌ",
+   8
+  ],
+  [
+   "ㅜ→ㅗ",
+   7
+  ],
+  [
+   "∅→ㄱ_",
+   7
+  ],
+  [
+   "ㅣ→∅",
+   7
+  ],
+  [
+   "ㅐ→ㅔ",
+   7
+  ],
+  [
+   "∅→ㄴ",
+   7
+  ],
+  [
+   "ㅣ→ㅐ",
+   7
+  ],
+  [
+   "ㅜ→∅",
+   6
+  ],
+  [
+   "ㅏ→ㅅ_",
+   6
+  ],
+  [
+   "ㅜ→ㅡ",
+   6
+  ]
+ ],
+ "items": [
+  {
+   "kind": "stop",
+   "text": "불",
+   "body": "male",
+   "heard": "폴이",
+   "exact": false,
+   "letters": 3,
+   "errors": 4
+  },
+  {
+   "kind": "stop",
+   "text": "뿔",
+   "body": "male",
+   "heard": "불이..",
+   "exact": false,
+   "letters": 3,
+   "errors": 3
+  },
+  {
+   "kind": "stop",
+   "text": "풀",
+   "body": "male",
+   "heard": "Please.",
+   "exact": false,
+   "letters": 3,
+   "errors": 3
+  },
+  {
+   "kind": "stop",
+   "text": "달",
+   "body": "male",
+   "heard": "타르",
+   "exact": false,
+   "letters": 3,
+   "errors": 3
+  },
+  {
+   "kind": "stop",
+   "text": "딸",
+   "body": "male",
+   "heard": "짤",
+   "exact": false,
+   "letters": 3,
+   "errors": 1
+  },
+  {
+   "kind": "stop",
+   "text": "탈",
+   "body": "male",
+   "heard": "탈..",
+   "exact": true,
+   "letters": 3,
+   "errors": 0
+  },
+  {
+   "kind": "stop",
+   "text": "자다",
+   "body": "male",
+   "heard": "빅샷다",
+   "exact": false,
+   "letters": 4,
+   "errors": 6
+  },
+  {
+   "kind": "stop",
+   "text": "짜다",
+   "body": "male",
+   "heard": "빅샷다",
+   "exact": false,
+   "letters": 4,
+   "errors": 6
+  },
+  {
+   "kind": "stop",
+   "text": "차다",
+   "body": "male",
+   "heard": "빅샷아",
+   "exact": false,
+   "letters": 4,
+   "errors": 7
+  },
+  {
+   "kind": "stop",
+   "text": "덕",
+   "body": "male",
+   "heard": "툭",
+   "exact": false,
+   "letters": 3,
+   "errors": 2
+  },
+  {
+   "kind": "stop",
+   "text": "떡",
+   "body": "male",
+   "heard": "부탁.",
+   "exact": false,
+   "letters": 3,
+   "errors": 4
+  },
+  {
+   "kind": "stop",
+   "text": "턱",
+   "body": "male",
+   "heard": "",
+   "exact": false,
+   "letters": 3,
+   "errors": 3
+  },
+  {
+   "kind": "stop",
+   "text": "기",
+   "body": "male",
+   "heard": "네.",
+   "exact": false,
+   "letters": 2,
+   "errors": 2
+  },
+  {
+   "kind": "stop",
+   "text": "끼",
+   "body": "male",
+   "heard": "기이",
+   "exact": false,
+   "letters": 2,
+   "errors": 3
+  },
+  {
+   "kind": "stop",
+   "text": "키",
+   "body": "male",
+   "heard": "히",
+   "exact": false,
+   "letters": 2,
+   "errors": 1
+  },
+  {
+   "kind": "stop",
+   "text": "방",
+   "body": "male",
+   "heard": "팽",
+   "exact": false,
+   "letters": 3,
+   "errors": 2
+  },
+  {
+   "kind": "stop",
+   "text": "빵",
+   "body": "male",
+   "heard": "엉",
+   "exact": false,
+   "letters": 3,
+   "errors": 2
+  },
+  {
+   "kind": "stop",
+   "text": "비다",
+   "body": "male",
+   "heard": "뵙다",
+   "exact": false,
+   "letters": 4,
+   "errors": 2
+  },
+  {
+   "kind": "stop",
+   "text": "피다",
+   "body": "male",
+   "heard": "뵙다",
+   "exact": false,
+   "letters": 4,
+   "errors": 3
+  },
+  {
+   "kind": "stop",
+   "text": "굴",
+   "body": "male",
+   "heard": "끄읕",
+   "exact": false,
+   "letters": 3,
+   "errors": 5
+  },
+  {
+   "kind": "stop",
+   "text": "꿀",
+   "body": "male",
+   "heard": "끄읕",
+   "exact": false,
+   "letters": 3,
+   "errors": 4
+  },
+  {
+   "kind": "fric",
+   "text": "사다",
+   "body": "male",
+   "heard": "자자.",
+   "exact": false,
+   "letters": 4,
+   "errors": 2
+  },
+  {
+   "kind": "fric",
+   "text": "싸다",
+   "body": "male",
+   "heard": "자자.",
+   "exact": false,
+   "letters": 4,
+   "errors": 2
+  },
+  {
+   "kind": "fric",
+   "text": "살",
+   "body": "male",
+   "heard": "쌀",
+   "exact": false,
+   "letters": 3,
+   "errors": 1
+  },
+  {
+   "kind": "fric",
+   "text": "쌀",
+   "body": "male",
+   "heard": "쌀",
+   "exact": true,
+   "letters": 3,
+   "errors": 0
+  },
+  {
+   "kind": "fric",
+   "text": "시장",
+   "body": "male",
+   "heard": "슛장",
+   "exact": false,
+   "letters": 5,
+   "errors": 2
+  },
+  {
+   "kind": "fric",
+   "text": "씨앗",
+   "body": "male",
+   "heard": "Shut.",
+   "exact": false,
+   "letters": 5,
+   "errors": 5
+  },
+  {
+   "kind": "fric",
+   "text": "하나",
+   "body": "male",
+   "heard": "하나.",
+   "exact": true,
+   "letters": 4,
+   "errors": 0
+  },
+  {
+   "kind": "fric",
+   "text": "혀",
+   "body": "male",
+   "heard": "Fia",
+   "exact": false,
+   "letters": 2,
+   "errors": 2
+  },
+  {
+   "kind": "fric",
+   "text": "휴지",
+   "body": "male",
+   "heard": "휴지",
+   "exact": true,
+   "letters": 4,
+   "errors": 0
+  },
+  {
+   "kind": "liquid",
+   "text": "나라",
+   "body": "male",
+   "heard": "나라.",
+   "exact": true,
+   "letters": 4,
+   "errors": 0
+  },
+  {
+   "kind": "liquid",
+   "text": "머리",
+   "body": "male",
+   "heard": "마리",
+   "exact": false,
+   "letters": 4,
+   "errors": 1
+  },
+  {
+   "kind": "liquid",
+   "text": "다리",
+   "body": "male",
+   "heard": "타리",
+   "exact": false,
+   "letters": 4,
+   "errors": 1
+  },
+  {
+   "kind": "liquid",
+   "text": "노래",
+   "body": "male",
+   "heard": "인어데",
+   "exact": false,
+   "letters": 4,
+   "errors": 7
+  },
+  {
+   "kind": "liquid",
+   "text": "우리",
+   "body": "male",
+   "heard": "우디",
+   "exact": false,
+   "letters": 4,
+   "errors": 1
+  },
+  {
+   "kind": "liquid",
+   "text": "하루",
+   "body": "male",
+   "heard": "하루",
+   "exact": true,
+   "letters": 4,
+   "errors": 0
+  },
+  {
+   "kind": "liquid",
+   "text": "바람",
+   "body": "male",
+   "heard": "하람",
+   "exact": false,
+   "letters": 5,
+   "errors": 1
+  },
+  {
+   "kind": "liquid",
+   "text": "사람",
+   "body": "male",
+   "heard": "사담.",
+   "exact": false,
+   "letters": 5,
+   "errors": 1
+  },
+  {
+   "kind": "liquid",
+   "text": "물",
+   "body": "male",
+   "heard": "무릎",
+   "exact": false,
+   "letters": 3,
+   "errors": 3
+  },
+  {
+   "kind": "liquid",
+   "text": "말",
+   "body": "male",
+   "heard": "마르",
+   "exact": false,
+   "letters": 3,
+   "errors": 2
+  },
+  {
+   "kind": "liquid",
+   "text": "길",
+   "body": "male",
+   "heard": "힐",
+   "exact": false,
+   "letters": 3,
+   "errors": 1
+  },
+  {
+   "kind": "liquid",
+   "text": "별",
+   "body": "male",
+   "heard": "피알",
+   "exact": false,
+   "letters": 3,
+   "errors": 4
+  },
+  {
+   "kind": "liquid",
+   "text": "달력",
+   "body": "male",
+   "heard": "탈력",
+   "exact": false,
+   "letters": 6,
+   "errors": 1
+  },
+  {
+   "kind": "liquid",
+   "text": "빨래",
+   "body": "male",
+   "heard": "알레",
+   "exact": false,
+   "letters": 5,
+   "errors": 2
+  },
+  {
+   "kind": "liquid",
+   "text": "놀라다",
+   "body": "male",
+   "heard": "눌러라",
+   "exact": false,
+   "letters": 7,
+   "errors": 3
+  },
+  {
+   "kind": "coda",
+   "text": "산",
+   "body": "male",
+   "heard": "사는..",
+   "exact": false,
+   "letters": 3,
+   "errors": 2
+  },
+  {
+   "kind": "coda",
+   "text": "상",
+   "body": "male",
+   "heard": "sang",
+   "exact": false,
+   "letters": 3,
+   "errors": 3
+  },
+  {
+   "kind": "coda",
+   "text": "삼",
+   "body": "male",
+   "heard": "쌈",
+   "exact": false,
+   "letters": 3,
+   "errors": 1
+  },
+  {
+   "kind": "coda",
+   "text": "반",
+   "body": "male",
+   "heard": "안녕!",
+   "exact": false,
+   "letters": 3,
+   "errors": 4
+  },
+  {
+   "kind": "coda",
+   "text": "밤",
+   "body": "male",
+   "heard": "pan",
+   "exact": false,
+   "letters": 3,
+   "errors": 3
+  },
+  {
+   "kind": "coda",
+   "text": "강",
+   "body": "male",
+   "heard": "탕",
+   "exact": false,
+   "letters": 3,
+   "errors": 1
+  },
+  {
+   "kind": "coda",
+   "text": "감",
+   "body": "male",
+   "heard": "탐",
+   "exact": false,
+   "letters": 3,
+   "errors": 1
+  },
+  {
+   "kind": "coda",
+   "text": "간",
+   "body": "male",
+   "heard": "타는",
+   "exact": false,
+   "letters": 3,
+   "errors": 3
+  },
+  {
+   "kind": "coda",
+   "text": "문",
+   "body": "male",
+   "heard": "moon",
+   "exact": false,
+   "letters": 3,
+   "errors": 3
+  },
+  {
+   "kind": "coda",
+   "text": "손",
+   "body": "male",
+   "heard": "쏘리",
+   "exact": false,
+   "letters": 3,
+   "errors": 3
+  },
+  {
+   "kind": "coda",
+   "text": "공",
+   "body": "male",
+   "heard": "콩",
+   "exact": false,
+   "letters": 3,
+   "errors": 1
+  },
+  {
+   "kind": "coda",
+   "text": "밥",
+   "body": "male",
+   "heard": "팝",
+   "exact": false,
+   "letters": 3,
+   "errors": 1
+  },
+  {
+   "kind": "coda",
+   "text": "국",
+   "body": "male",
+   "heard": "굿",
+   "exact": false,
+   "letters": 3,
+   "errors": 1
+  },
+  {
+   "kind": "coda",
+   "text": "옷",
+   "body": "male",
+   "heard": "오트",
+   "exact": false,
+   "letters": 3,
+   "errors": 2
+  },
+  {
+   "kind": "nasal",
+   "text": "엄마",
+   "body": "male",
+   "heard": "아매",
+   "exact": false,
+   "letters": 5,
+   "errors": 3
+  },
+  {
+   "kind": "nasal",
+   "text": "나무",
+   "body": "male",
+   "heard": "남우",
+   "exact": false,
+   "letters": 4,
+   "errors": 2
+  },
+  {
+   "kind": "nasal",
+   "text": "마음",
+   "body": "male",
+   "heard": "맘",
+   "exact": false,
+   "letters": 5,
+   "errors": 2
+  },
+  {
+   "kind": "nasal",
+   "text": "냄새",
+   "body": "male",
+   "heard": "늠쎄",
+   "exact": false,
+   "letters": 5,
+   "errors": 3
+  },
+  {
+   "kind": "nasal",
+   "text": "강아지",
+   "body": "male",
+   "heard": "강아지",
+   "exact": true,
+   "letters": 7,
+   "errors": 0
+  },
+  {
+   "kind": "nasal",
+   "text": "안녕",
+   "body": "male",
+   "heard": "안녕",
+   "exact": true,
+   "letters": 6,
+   "errors": 0
+  },
+  {
+   "kind": "vowel",
+   "text": "아이",
+   "body": "male",
+   "heard": "아이.",
+   "exact": true,
+   "letters": 4,
+   "errors": 0
+  },
+  {
+   "kind": "vowel",
+   "text": "오이",
+   "body": "male",
+   "heard": "오이",
+   "exact": true,
+   "letters": 4,
+   "errors": 0
+  },
+  {
+   "kind": "vowel",
+   "text": "우유",
+   "body": "male",
+   "heard": "우유",
+   "exact": true,
+   "letters": 4,
+   "errors": 0
+  },
+  {
+   "kind": "vowel",
+   "text": "거리",
+   "body": "male",
+   "heard": "그래.",
+   "exact": false,
+   "letters": 4,
+   "errors": 2
+  },
+  {
+   "kind": "vowel",
+   "text": "고리",
+   "body": "male",
+   "heard": "그래.",
+   "exact": false,
+   "letters": 4,
+   "errors": 2
+  },
+  {
+   "kind": "vowel",
+   "text": "구리",
+   "body": "male",
+   "heard": "그래.",
+   "exact": false,
+   "letters": 4,
+   "errors": 2
+  },
+  {
+   "kind": "vowel",
+   "text": "그림",
+   "body": "male",
+   "heard": "크림",
+   "exact": false,
+   "letters": 5,
+   "errors": 1
+  },
+  {
+   "kind": "vowel",
+   "text": "서리",
+   "body": "male",
+   "heard": "슬리",
+   "exact": false,
+   "letters": 4,
+   "errors": 2
+  },
+  {
+   "kind": "vowel",
+   "text": "소리",
+   "body": "male",
+   "heard": "스토리",
+   "exact": false,
+   "letters": 4,
+   "errors": 2
+  },
+  {
+   "kind": "vowel",
+   "text": "수리",
+   "body": "male",
+   "heard": "스튜디오",
+   "exact": false,
+   "letters": 4,
+   "errors": 6
+  },
+  {
+   "kind": "vowel",
+   "text": "기린",
+   "body": "male",
+   "heard": "끝!",
+   "exact": false,
+   "letters": 5,
+   "errors": 5
+  },
+  {
+   "kind": "vowel",
+   "text": "개",
+   "body": "male",
+   "heard": "헐",
+   "exact": false,
+   "letters": 2,
+   "errors": 3
+  },
+  {
+   "kind": "vowel",
+   "text": "게",
+   "body": "male",
+   "heard": "오케이.",
+   "exact": false,
+   "letters": 2,
+   "errors": 5
+  },
+  {
+   "kind": "vowel",
+   "text": "어머니",
+   "body": "male",
+   "heard": "아마리",
+   "exact": false,
+   "letters": 6,
+   "errors": 3
+  },
+  {
+   "kind": "vowel",
+   "text": "여우",
+   "body": "male",
+   "heard": "안녕!",
+   "exact": false,
+   "letters": 4,
+   "errors": 5
+  },
+  {
+   "kind": "vowel",
+   "text": "요리",
+   "body": "male",
+   "heard": "P.O.D",
+   "exact": false,
+   "letters": 4,
+   "errors": 4
+  },
+  {
+   "kind": "vowel",
+   "text": "왜",
+   "body": "male",
+   "heard": "왜?",
+   "exact": true,
+   "letters": 2,
+   "errors": 0
+  },
+  {
+   "kind": "vowel",
+   "text": "의자",
+   "body": "male",
+   "heard": "으쌰",
+   "exact": false,
+   "letters": 4,
+   "errors": 3
+  },
+  {
+   "kind": "rule",
+   "text": "같이",
+   "body": "male",
+   "heard": "터치해",
+   "exact": false,
+   "letters": 5,
+   "errors": 6
+  },
+  {
+   "kind": "rule",
+   "text": "국물",
+   "body": "male",
+   "heard": "쿵무리",
+   "exact": false,
+   "letters": 6,
+   "errors": 4
+  },
+  {
+   "kind": "rule",
+   "text": "신라",
+   "body": "male",
+   "heard": "쉬-라",
+   "exact": false,
+   "letters": 5,
+   "errors": 2
+  },
+  {
+   "kind": "rule",
+   "text": "좋다",
+   "body": "male",
+   "heard": "미쳤다.",
+   "exact": false,
+   "letters": 5,
+   "errors": 5
+  },
+  {
+   "kind": "rule",
+   "text": "학교",
+   "body": "male",
+   "heard": "하트요",
+   "exact": false,
+   "letters": 5,
+   "errors": 3
+  },
+  {
+   "kind": "rule",
+   "text": "먹어",
+   "body": "male",
+   "heard": "마가",
+   "exact": false,
+   "letters": 5,
+   "errors": 4
+  },
+  {
+   "kind": "rule",
+   "text": "싫어",
+   "body": "male",
+   "heard": "싫어.",
+   "exact": true,
+   "letters": 5,
+   "errors": 0
+  },
+  {
+   "kind": "rule",
+   "text": "읽다",
+   "body": "male",
+   "heard": "됐다",
+   "exact": false,
+   "letters": 5,
+   "errors": 3
+  },
+  {
+   "kind": "rule",
+   "text": "없다",
+   "body": "male",
+   "heard": "아프다",
+   "exact": false,
+   "letters": 5,
+   "errors": 3
+  },
+  {
+   "kind": "rule",
+   "text": "닭",
+   "body": "male",
+   "heard": "탁!",
+   "exact": false,
+   "letters": 3,
+   "errors": 2
+  },
+  {
+   "kind": "rule",
+   "text": "희망",
+   "body": "male",
+   "heard": "희망",
+   "exact": true,
+   "letters": 5,
+   "errors": 0
+  },
+  {
+   "kind": "rule",
+   "text": "굳이",
+   "body": "male",
+   "heard": "오케이.",
+   "exact": false,
+   "letters": 5,
+   "errors": 4
+  },
+  {
+   "kind": "rule",
+   "text": "입문",
+   "body": "male",
+   "heard": "림 무늬",
+   "exact": false,
+   "letters": 6,
+   "errors": 4
+  },
+  {
+   "kind": "phrase",
+   "text": "안녕하세요",
+   "body": "male",
+   "heard": "안녕히 가세요",
+   "exact": false,
+   "letters": 12,
+   "errors": 2
+  },
+  {
+   "kind": "phrase",
+   "text": "감사합니다",
+   "body": "male",
+   "heard": "감사합니다.",
+   "exact": true,
+   "letters": 12,
+   "errors": 0
+  },
+  {
+   "kind": "phrase",
+   "text": "사랑해요",
+   "body": "male",
+   "heard": "사랑해요",
+   "exact": true,
+   "letters": 9,
+   "errors": 0
+  },
+  {
+   "kind": "phrase",
+   "text": "괜찮아요",
+   "body": "male",
+   "heard": "괜찮아요.",
+   "exact": true,
+   "letters": 10,
+   "errors": 0
+  },
+  {
+   "kind": "phrase",
+   "text": "미안해요",
+   "body": "male",
+   "heard": "미안해요.",
+   "exact": true,
+   "letters": 9,
+   "errors": 0
+  },
+  {
+   "kind": "phrase",
+   "text": "배고파요",
+   "body": "male",
+   "heard": "피곤 피오",
+   "exact": false,
+   "letters": 8,
+   "errors": 5
+  },
+  {
+   "kind": "phrase",
+   "text": "물 주세요",
+   "body": "male",
+   "heard": "모르십시오",
+   "exact": false,
+   "letters": 9,
+   "errors": 8
+  },
+  {
+   "kind": "phrase",
+   "text": "잘 자요",
+   "body": "male",
+   "heard": "빅샥샤이오",
+   "exact": false,
+   "letters": 7,
+   "errors": 11
+  },
+  {
+   "kind": "phrase",
+   "text": "어디 가요",
+   "body": "male",
+   "heard": "어디가요?",
+   "exact": true,
+   "letters": 8,
+   "errors": 0
+  },
+  {
+   "kind": "phrase",
+   "text": "내일 봐요",
+   "body": "male",
+   "heard": "네 플라이오",
+   "exact": false,
+   "letters": 9,
+   "errors": 8
+  },
+  {
+   "kind": "stop",
+   "text": "불",
+   "body": "female",
+   "heard": "뿌-리",
+   "exact": false,
+   "letters": 3,
+   "errors": 3
+  },
+  {
+   "kind": "stop",
+   "text": "뿔",
+   "body": "female",
+   "heard": "버릇",
+   "exact": false,
+   "letters": 3,
+   "errors": 5
+  },
+  {
+   "kind": "stop",
+   "text": "풀",
+   "body": "female",
+   "heard": "포-리-",
+   "exact": false,
+   "letters": 3,
+   "errors": 3
+  },
+  {
+   "kind": "stop",
+   "text": "달",
+   "body": "female",
+   "heard": "털",
+   "exact": false,
+   "letters": 3,
+   "errors": 2
+  },
+  {
+   "kind": "stop",
+   "text": "딸",
+   "body": "female",
+   "heard": "잘...",
+   "exact": false,
+   "letters": 3,
+   "errors": 1
+  },
+  {
+   "kind": "stop",
+   "text": "탈",
+   "body": "female",
+   "heard": "탈?",
+   "exact": true,
+   "letters": 3,
+   "errors": 0
+  },
+  {
+   "kind": "stop",
+   "text": "자다",
+   "body": "female",
+   "heard": "빅샷다.",
+   "exact": false,
+   "letters": 4,
+   "errors": 6
+  },
+  {
+   "kind": "stop",
+   "text": "짜다",
+   "body": "female",
+   "heard": "빅샷다.",
+   "exact": false,
+   "letters": 4,
+   "errors": 6
+  },
+  {
+   "kind": "stop",
+   "text": "차다",
+   "body": "female",
+   "heard": "뷔쉐다",
+   "exact": false,
+   "letters": 4,
+   "errors": 4
+  },
+  {
+   "kind": "stop",
+   "text": "덕",
+   "body": "female",
+   "heard": "탁!",
+   "exact": false,
+   "letters": 3,
+   "errors": 2
+  },
+  {
+   "kind": "stop",
+   "text": "떡",
+   "body": "female",
+   "heard": "감사합니다.",
+   "exact": false,
+   "letters": 3,
+   "errors": 12
+  },
+  {
+   "kind": "stop",
+   "text": "턱",
+   "body": "female",
+   "heard": "뷔타크",
+   "exact": false,
+   "letters": 3,
+   "errors": 5
+  },
+  {
+   "kind": "stop",
+   "text": "기",
+   "body": "female",
+   "heard": "네.",
+   "exact": false,
+   "letters": 2,
+   "errors": 2
+  },
+  {
+   "kind": "stop",
+   "text": "끼",
+   "body": "female",
+   "heard": "오케이.",
+   "exact": false,
+   "letters": 2,
+   "errors": 5
+  },
+  {
+   "kind": "stop",
+   "text": "키",
+   "body": "female",
+   "heard": "네.",
+   "exact": false,
+   "letters": 2,
+   "errors": 2
+  },
+  {
+   "kind": "stop",
+   "text": "방",
+   "body": "female",
+   "heard": "펜",
+   "exact": false,
+   "letters": 3,
+   "errors": 3
+  },
+  {
+   "kind": "stop",
+   "text": "빵",
+   "body": "female",
+   "heard": "펜",
+   "exact": false,
+   "letters": 3,
+   "errors": 3
+  },
+  {
+   "kind": "stop",
+   "text": "비다",
+   "body": "female",
+   "heard": "뷔다",
+   "exact": false,
+   "letters": 4,
+   "errors": 1
+  },
+  {
+   "kind": "stop",
+   "text": "피다",
+   "body": "female",
+   "heard": "뷔다",
+   "exact": false,
+   "letters": 4,
+   "errors": 2
+  },
+  {
+   "kind": "stop",
+   "text": "굴",
+   "body": "female",
+   "heard": "고맙습니다",
+   "exact": false,
+   "letters": 3,
+   "errors": 11
+  },
+  {
+   "kind": "stop",
+   "text": "꿀",
+   "body": "female",
+   "heard": "고맙습니다",
+   "exact": false,
+   "letters": 3,
+   "errors": 12
+  },
+  {
+   "kind": "fric",
+   "text": "사다",
+   "body": "female",
+   "heard": "살다.",
+   "exact": false,
+   "letters": 4,
+   "errors": 1
+  },
+  {
+   "kind": "fric",
+   "text": "싸다",
+   "body": "female",
+   "heard": "살다.",
+   "exact": false,
+   "letters": 4,
+   "errors": 2
+  },
+  {
+   "kind": "fric",
+   "text": "살",
+   "body": "female",
+   "heard": "쌀",
+   "exact": false,
+   "letters": 3,
+   "errors": 1
+  },
+  {
+   "kind": "fric",
+   "text": "쌀",
+   "body": "female",
+   "heard": "쌀",
+   "exact": true,
+   "letters": 3,
+   "errors": 0
+  },
+  {
+   "kind": "fric",
+   "text": "시장",
+   "body": "female",
+   "heard": "시장",
+   "exact": true,
+   "letters": 5,
+   "errors": 0
+  },
+  {
+   "kind": "fric",
+   "text": "씨앗",
+   "body": "female",
+   "heard": "Shut!",
+   "exact": false,
+   "letters": 5,
+   "errors": 5
+  },
+  {
+   "kind": "fric",
+   "text": "하나",
+   "body": "female",
+   "heard": "허나",
+   "exact": false,
+   "letters": 4,
+   "errors": 1
+  },
+  {
+   "kind": "fric",
+   "text": "혀",
+   "body": "female",
+   "heard": "fia",
+   "exact": false,
+   "letters": 2,
+   "errors": 2
+  },
+  {
+   "kind": "fric",
+   "text": "휴지",
+   "body": "female",
+   "heard": "휴지.",
+   "exact": true,
+   "letters": 4,
+   "errors": 0
+  },
+  {
+   "kind": "liquid",
+   "text": "나라",
+   "body": "female",
+   "heard": "나라.",
+   "exact": true,
+   "letters": 4,
+   "errors": 0
+  },
+  {
+   "kind": "liquid",
+   "text": "머리",
+   "body": "female",
+   "heard": "무리",
+   "exact": false,
+   "letters": 4,
+   "errors": 1
+  },
+  {
+   "kind": "liquid",
+   "text": "다리",
+   "body": "female",
+   "heard": "퇴리",
+   "exact": false,
+   "letters": 4,
+   "errors": 2
+  },
+  {
+   "kind": "liquid",
+   "text": "노래",
+   "body": "female",
+   "heard": "또다.",
+   "exact": false,
+   "letters": 4,
+   "errors": 3
+  },
+  {
+   "kind": "liquid",
+   "text": "우리",
+   "body": "female",
+   "heard": "오디",
+   "exact": false,
+   "letters": 4,
+   "errors": 2
+  },
+  {
+   "kind": "liquid",
+   "text": "하루",
+   "body": "female",
+   "heard": "Hello.",
+   "exact": false,
+   "letters": 4,
+   "errors": 4
+  },
+  {
+   "kind": "liquid",
+   "text": "바람",
+   "body": "female",
+   "heard": "파란",
+   "exact": false,
+   "letters": 5,
+   "errors": 2
+  },
+  {
+   "kind": "liquid",
+   "text": "사람",
+   "body": "female",
+   "heard": "사랑.",
+   "exact": false,
+   "letters": 5,
+   "errors": 1
+  },
+  {
+   "kind": "liquid",
+   "text": "물",
+   "body": "female",
+   "heard": "무릎",
+   "exact": false,
+   "letters": 3,
+   "errors": 3
+  },
+  {
+   "kind": "liquid",
+   "text": "말",
+   "body": "female",
+   "heard": "맜...",
+   "exact": false,
+   "letters": 3,
+   "errors": 1
+  },
+  {
+   "kind": "liquid",
+   "text": "길",
+   "body": "female",
+   "heard": "힐",
+   "exact": false,
+   "letters": 3,
+   "errors": 1
+  },
+  {
+   "kind": "liquid",
+   "text": "별",
+   "body": "female",
+   "heard": "뼐",
+   "exact": false,
+   "letters": 3,
+   "errors": 1
+  },
+  {
+   "kind": "liquid",
+   "text": "달력",
+   "body": "female",
+   "heard": "달력!",
+   "exact": true,
+   "letters": 6,
+   "errors": 0
+  },
+  {
+   "kind": "liquid",
+   "text": "빨래",
+   "body": "female",
+   "heard": "팔레",
+   "exact": false,
+   "letters": 5,
+   "errors": 2
+  },
+  {
+   "kind": "liquid",
+   "text": "놀라다",
+   "body": "female",
+   "heard": "놀랐다.",
+   "exact": false,
+   "letters": 7,
+   "errors": 1
+  },
+  {
+   "kind": "coda",
+   "text": "산",
+   "body": "female",
+   "heard": "선.",
+   "exact": false,
+   "letters": 3,
+   "errors": 1
+  },
+  {
+   "kind": "coda",
+   "text": "상",
+   "body": "female",
+   "heard": "선.",
+   "exact": false,
+   "letters": 3,
+   "errors": 2
+  },
+  {
+   "kind": "coda",
+   "text": "삼",
+   "body": "female",
+   "heard": "쌈",
+   "exact": false,
+   "letters": 3,
+   "errors": 1
+  },
+  {
+   "kind": "coda",
+   "text": "반",
+   "body": "female",
+   "heard": "펜",
+   "exact": false,
+   "letters": 3,
+   "errors": 2
+  },
+  {
+   "kind": "coda",
+   "text": "밤",
+   "body": "female",
+   "heard": "펌",
+   "exact": false,
+   "letters": 3,
+   "errors": 2
+  },
+  {
+   "kind": "coda",
+   "text": "강",
+   "body": "female",
+   "heard": "10.",
+   "exact": false,
+   "letters": 3,
+   "errors": 3
+  },
+  {
+   "kind": "coda",
+   "text": "감",
+   "body": "female",
+   "heard": "10.",
+   "exact": false,
+   "letters": 3,
+   "errors": 3
+  },
+  {
+   "kind": "coda",
+   "text": "간",
+   "body": "female",
+   "heard": "한..",
+   "exact": false,
+   "letters": 3,
+   "errors": 1
+  },
+  {
+   "kind": "coda",
+   "text": "문",
+   "body": "female",
+   "heard": "",
+   "exact": false,
+   "letters": 3,
+   "errors": 3
+  },
+  {
+   "kind": "coda",
+   "text": "손",
+   "body": "female",
+   "heard": "쏠리",
+   "exact": false,
+   "letters": 3,
+   "errors": 4
+  },
+  {
+   "kind": "coda",
+   "text": "공",
+   "body": "female",
+   "heard": "퐁",
+   "exact": false,
+   "letters": 3,
+   "errors": 1
+  },
+  {
+   "kind": "coda",
+   "text": "밥",
+   "body": "female",
+   "heard": "pep",
+   "exact": false,
+   "letters": 3,
+   "errors": 3
+  },
+  {
+   "kind": "coda",
+   "text": "국",
+   "body": "female",
+   "heard": "콕",
+   "exact": false,
+   "letters": 3,
+   "errors": 2
+  },
+  {
+   "kind": "coda",
+   "text": "옷",
+   "body": "female",
+   "heard": "옳",
+   "exact": false,
+   "letters": 3,
+   "errors": 1
+  },
+  {
+   "kind": "nasal",
+   "text": "엄마",
+   "body": "female",
+   "heard": "안녕!",
+   "exact": false,
+   "letters": 5,
+   "errors": 5
+  },
+  {
+   "kind": "nasal",
+   "text": "나무",
+   "body": "female",
+   "heard": "namu",
+   "exact": false,
+   "letters": 4,
+   "errors": 4
+  },
+  {
+   "kind": "nasal",
+   "text": "마음",
+   "body": "female",
+   "heard": "맘",
+   "exact": false,
+   "letters": 5,
+   "errors": 2
+  },
+  {
+   "kind": "nasal",
+   "text": "냄새",
+   "body": "female",
+   "heard": "늑쎄",
+   "exact": false,
+   "letters": 5,
+   "errors": 4
+  },
+  {
+   "kind": "nasal",
+   "text": "강아지",
+   "body": "female",
+   "heard": "강아지",
+   "exact": true,
+   "letters": 7,
+   "errors": 0
+  },
+  {
+   "kind": "nasal",
+   "text": "안녕",
+   "body": "female",
+   "heard": "안영...",
+   "exact": false,
+   "letters": 6,
+   "errors": 1
+  },
+  {
+   "kind": "vowel",
+   "text": "아이",
+   "body": "female",
+   "heard": "에이",
+   "exact": false,
+   "letters": 4,
+   "errors": 1
+  },
+  {
+   "kind": "vowel",
+   "text": "오이",
+   "body": "female",
+   "heard": "오이",
+   "exact": true,
+   "letters": 4,
+   "errors": 0
+  },
+  {
+   "kind": "vowel",
+   "text": "우유",
+   "body": "female",
+   "heard": "오요.",
+   "exact": false,
+   "letters": 4,
+   "errors": 2
+  },
+  {
+   "kind": "vowel",
+   "text": "거리",
+   "body": "female",
+   "heard": "그래.",
+   "exact": false,
+   "letters": 4,
+   "errors": 2
+  },
+  {
+   "kind": "vowel",
+   "text": "고리",
+   "body": "female",
+   "heard": "그래.",
+   "exact": false,
+   "letters": 4,
+   "errors": 2
+  },
+  {
+   "kind": "vowel",
+   "text": "구리",
+   "body": "female",
+   "heard": "그래.",
+   "exact": false,
+   "letters": 4,
+   "errors": 2
+  },
+  {
+   "kind": "vowel",
+   "text": "그림",
+   "body": "female",
+   "heard": "고마워!",
+   "exact": false,
+   "letters": 5,
+   "errors": 5
+  },
+  {
+   "kind": "vowel",
+   "text": "서리",
+   "body": "female",
+   "heard": "슬리",
+   "exact": false,
+   "letters": 4,
+   "errors": 2
+  },
+  {
+   "kind": "vowel",
+   "text": "소리",
+   "body": "female",
+   "heard": "스토리",
+   "exact": false,
+   "letters": 4,
+   "errors": 2
+  },
+  {
+   "kind": "vowel",
+   "text": "수리",
+   "body": "female",
+   "heard": "스토디",
+   "exact": false,
+   "letters": 4,
+   "errors": 4
+  },
+  {
+   "kind": "vowel",
+   "text": "기린",
+   "body": "female",
+   "heard": "안녕!",
+   "exact": false,
+   "letters": 5,
+   "errors": 6
+  },
+  {
+   "kind": "vowel",
+   "text": "개",
+   "body": "female",
+   "heard": "퉤",
+   "exact": false,
+   "letters": 2,
+   "errors": 2
+  },
+  {
+   "kind": "vowel",
+   "text": "게",
+   "body": "female",
+   "heard": "히...",
+   "exact": false,
+   "letters": 2,
+   "errors": 2
+  },
+  {
+   "kind": "vowel",
+   "text": "어머니",
+   "body": "female",
+   "heard": "아마리",
+   "exact": false,
+   "letters": 6,
+   "errors": 3
+  },
+  {
+   "kind": "vowel",
+   "text": "여우",
+   "body": "female",
+   "heard": "안녕!",
+   "exact": false,
+   "letters": 4,
+   "errors": 5
+  },
+  {
+   "kind": "vowel",
+   "text": "요리",
+   "body": "female",
+   "heard": "비요디",
+   "exact": false,
+   "letters": 4,
+   "errors": 3
+  },
+  {
+   "kind": "vowel",
+   "text": "왜",
+   "body": "female",
+   "heard": "으앗",
+   "exact": false,
+   "letters": 2,
+   "errors": 4
+  },
+  {
+   "kind": "vowel",
+   "text": "의자",
+   "body": "female",
+   "heard": "굿샷",
+   "exact": false,
+   "letters": 4,
+   "errors": 6
+  },
+  {
+   "kind": "rule",
+   "text": "같이",
+   "body": "female",
+   "heard": "그렇지!",
+   "exact": false,
+   "letters": 5,
+   "errors": 5
+  },
+  {
+   "kind": "rule",
+   "text": "국물",
+   "body": "female",
+   "heard": "콩무릇",
+   "exact": false,
+   "letters": 6,
+   "errors": 6
+  },
+  {
+   "kind": "rule",
+   "text": "신라",
+   "body": "female",
+   "heard": "쉬-라",
+   "exact": false,
+   "letters": 5,
+   "errors": 2
+  },
+  {
+   "kind": "rule",
+   "text": "좋다",
+   "body": "female",
+   "heard": "미쳤어.",
+   "exact": false,
+   "letters": 5,
+   "errors": 7
+  },
+  {
+   "kind": "rule",
+   "text": "학교",
+   "body": "female",
+   "heard": "하트요",
+   "exact": false,
+   "letters": 5,
+   "errors": 3
+  },
+  {
+   "kind": "rule",
+   "text": "먹어",
+   "body": "female",
+   "heard": "마가.",
+   "exact": false,
+   "letters": 5,
+   "errors": 4
+  },
+  {
+   "kind": "rule",
+   "text": "싫어",
+   "body": "female",
+   "heard": "시다.",
+   "exact": false,
+   "letters": 5,
+   "errors": 3
+  },
+  {
+   "kind": "rule",
+   "text": "읽다",
+   "body": "female",
+   "heard": "빅타",
+   "exact": false,
+   "letters": 5,
+   "errors": 3
+  },
+  {
+   "kind": "rule",
+   "text": "없다",
+   "body": "female",
+   "heard": "아프다.",
+   "exact": false,
+   "letters": 5,
+   "errors": 3
+  },
+  {
+   "kind": "rule",
+   "text": "닭",
+   "body": "female",
+   "heard": "탁",
+   "exact": false,
+   "letters": 3,
+   "errors": 2
+  },
+  {
+   "kind": "rule",
+   "text": "희망",
+   "body": "female",
+   "heard": "안녕!",
+   "exact": false,
+   "letters": 5,
+   "errors": 5
+  },
+  {
+   "kind": "rule",
+   "text": "굳이",
+   "body": "female",
+   "heard": "g.",
+   "exact": false,
+   "letters": 5,
+   "errors": 5
+  },
+  {
+   "kind": "rule",
+   "text": "입문",
+   "body": "female",
+   "heard": "잉몬",
+   "exact": false,
+   "letters": 6,
+   "errors": 2
+  },
+  {
+   "kind": "phrase",
+   "text": "안녕하세요",
+   "body": "female",
+   "heard": "안녕하세요.",
+   "exact": true,
+   "letters": 12,
+   "errors": 0
+  },
+  {
+   "kind": "phrase",
+   "text": "감사합니다",
+   "body": "female",
+   "heard": "감사합니다.",
+   "exact": true,
+   "letters": 12,
+   "errors": 0
+  },
+  {
+   "kind": "phrase",
+   "text": "사랑해요",
+   "body": "female",
+   "heard": "사랑해요.",
+   "exact": true,
+   "letters": 9,
+   "errors": 0
+  },
+  {
+   "kind": "phrase",
+   "text": "괜찮아요",
+   "body": "female",
+   "heard": "끝나요.",
+   "exact": false,
+   "letters": 10,
+   "errors": 7
+  },
+  {
+   "kind": "phrase",
+   "text": "미안해요",
+   "body": "female",
+   "heard": "미안해요.",
+   "exact": true,
+   "letters": 9,
+   "errors": 0
+  },
+  {
+   "kind": "phrase",
+   "text": "배고파요",
+   "body": "female",
+   "heard": "배고파요.",
+   "exact": true,
+   "letters": 8,
+   "errors": 0
+  },
+  {
+   "kind": "phrase",
+   "text": "물 주세요",
+   "body": "female",
+   "heard": "모르셔서요.",
+   "exact": false,
+   "letters": 9,
+   "errors": 6
+  },
+  {
+   "kind": "phrase",
+   "text": "잘 자요",
+   "body": "female",
+   "heard": "빅샥샥요.",
+   "exact": false,
+   "letters": 7,
+   "errors": 9
+  },
+  {
+   "kind": "phrase",
+   "text": "어디 가요",
+   "body": "female",
+   "heard": "어디가요?",
+   "exact": true,
+   "letters": 8,
+   "errors": 0
+  },
+  {
+   "kind": "phrase",
+   "text": "내일 봐요",
+   "body": "female",
+   "heard": "네, 플라이오",
+   "exact": false,
+   "letters": 9,
+   "errors": 8
+  }
+ ]
+}

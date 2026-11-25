@@ -1,0 +1,118 @@
+# Korean words for the engine's intelligibility test (tools/korean). kind<TAB>word<TAB>group
+# Real, common words, so the recogniser isn't pulled away from a non-word; minimal sets where a
+# single sound differs, so a confusion shows which sound. Loanwords are left out (Whisper writes
+# them in Latin letters).
+# stop: plain / tense / aspirated, the same frame
+stop	불	ㅂㅃㅍ
+stop	뿔	ㅂㅃㅍ
+stop	풀	ㅂㅃㅍ
+stop	달	ㄷㄸㅌ
+stop	딸	ㄷㄸㅌ
+stop	탈	ㄷㄸㅌ
+stop	자다	ㅈㅉㅊ
+stop	짜다	ㅈㅉㅊ
+stop	차다	ㅈㅉㅊ
+stop	덕	ㄷㄸㅌ2
+stop	떡	ㄷㄸㅌ2
+stop	턱	ㄷㄸㅌ2
+stop	기	ㄱㄲㅋ
+stop	끼	ㄱㄲㅋ
+stop	키	ㄱㄲㅋ
+stop	방	ㅂㅃㅍ2
+stop	빵	ㅂㅃㅍ2
+stop	비다	ㅂㅃㅍ3
+stop	피다	ㅂㅃㅍ3
+stop	굴	ㄱㄲ
+stop	꿀	ㄱㄲ
+# fricative: plain / tense ㅅ ㅆ, and ㅎ
+fric	사다	ㅅㅆ
+fric	싸다	ㅅㅆ
+fric	살	ㅅㅆ2
+fric	쌀	ㅅㅆ2
+fric	시장	ㅅ
+fric	씨앗	ㅆ
+fric	하나	ㅎ
+fric	혀	ㅎ
+fric	휴지	ㅎ
+# liquid: ㄹ between vowels [ɾ], in a coda and doubled [l]
+liquid	나라	ㄹ
+liquid	머리	ㄹ
+liquid	다리	ㄹ
+liquid	노래	ㄹ
+liquid	우리	ㄹ
+liquid	하루	ㄹ
+liquid	바람	ㄹ
+liquid	사람	ㄹ
+liquid	물	ㄹ받침
+liquid	말	ㄹ받침
+liquid	길	ㄹ받침
+liquid	별	ㄹ받침
+liquid	달력	ㄹ받침
+liquid	빨래	ㄹㄹ
+liquid	놀라다	ㄹㄹ
+# coda: the seven final sounds, especially ㄴ ㅇ ㅁ
+coda	산	ㄴ받침
+coda	상	ㅇ받침
+coda	삼	ㅁ받침
+coda	반	ㄴ받침2
+coda	밤	ㅁ받침2
+coda	강	ㅇ받침2
+coda	감	ㅁ받침3
+coda	간	ㄴ받침3
+coda	문	ㄴ받침4
+coda	손	ㄴ받침5
+coda	공	ㅇ받침3
+coda	밥	ㅂ받침
+coda	국	ㄱ받침
+coda	옷	ㄷ받침
+# nasal
+nasal	엄마	ㅁ
+nasal	나무	ㄴㅁ
+nasal	마음	ㅁ
+nasal	냄새	ㄴㅁ
+nasal	강아지	ㅇ
+nasal	안녕	ㄴㅇ
+# vowel: ㅏ ㅓ ㅗ ㅜ ㅡ ㅣ ㅐ/ㅔ in one frame where it can be
+vowel	아이	ㅏㅣ
+vowel	오이	ㅗ
+vowel	우유	ㅜ
+vowel	거리	ㅓㅗ
+vowel	고리	ㅓㅗ
+vowel	구리	ㅜㅡ
+vowel	그림	ㅡ
+vowel	서리	ㅓㅗ2
+vowel	소리	ㅓㅗ2
+vowel	수리	ㅜ
+vowel	기린	ㅣ
+vowel	개	ㅐㅔ
+vowel	게	ㅐㅔ
+vowel	어머니	ㅓ
+vowel	여우	ㅕ
+vowel	요리	ㅛ
+vowel	왜	ㅙ
+vowel	의자	ㅢ
+# rule: words whose sound differs from their spelling (standard pronunciation)
+rule	같이	구개음화
+rule	국물	비음화
+rule	신라	유음화
+rule	좋다	ㅎ축약
+rule	학교	된소리
+rule	먹어	연음
+rule	싫어	ㅎ탈락
+rule	읽다	겹받침
+rule	없다	겹받침
+rule	닭	겹받침
+rule	희망	ㅢ
+rule	굳이	구개음화
+rule	입문	비음화
+# phrase: everyday phrases
+phrase	안녕하세요	인사
+phrase	감사합니다	인사
+phrase	사랑해요	문장
+phrase	괜찮아요	문장
+phrase	미안해요	문장
+phrase	배고파요	문장
+phrase	물 주세요	문장
+phrase	잘 자요	문장
+phrase	어디 가요	문장
+phrase	내일 봐요	문장

@@ -42,6 +42,10 @@ export class WasmVoice {
   stop(): void {
     this.x.engine_stop_speech(this.h);
   }
+  /** The voice's body: 0 … 1 female and child (male when both are 0). */
+  setBody(female: number, child: number): void {
+    this.x.engine_set_body(this.h, female, child);
+  }
   setGate(level: number): void {
     this.x.engine_set_gate(this.h, level);
   }
