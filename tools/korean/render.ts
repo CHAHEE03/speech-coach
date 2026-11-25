@@ -51,13 +51,22 @@ function writeWav(path: string, x: Float32Array): void {
   writeFileSync(path, buf);
 }
 
-const manifest: { kind: string; text: string; group: string; body: string; file: string; seconds: number }[] = [];
+/** A word is said inside a fixed sentence, as intelligibility tests do: a lone syllable left the
+ *  recogniser to invent a word ("부탁드립니다" for 덕). The next word starts with a vowel but is a
+ *  separate word, so the engine keeps the test word's final as it is (no liaison across words).
+ *  Phrases are said as they are. */
+const PREFIX = "다음 단어는 ";
+const SUFFIX = " 입니다";
+
+const manifest: { kind: string; text: string; group: string; said: string; prefix: string; body: string; file: string; seconds: number }[] = [];
 for (const body of BODIES) {
   mkdirSync(join(out, body.name), { recursive: true });
   words.forEach((w, n) => {
     const v = new WasmVoice(FS);
     if (body.female) v.setBody(body.female, 0);
-    const plan = planPhrases(koreanPhrases(w.text), { body: { female: body.female, child: 0 }, t0: 0, rate: 1, f0: body.f0 });
+    const prefix = w.kind === "phrase" ? "" : PREFIX;
+    const said = w.kind === "phrase" ? w.text : PREFIX + w.text + SUFFIX;
+    const plan = planPhrases(koreanPhrases(said), { body: { female: body.female, child: 0 }, t0: 0, rate: 1, f0: body.f0 });
     v.schedule(plan.gestures, LEAD);
     const audio = v.render(Math.ceil((plan.end + LEAD + 0.25) * FS));
     let peak = 0;
@@ -67,7 +76,7 @@ for (const body of BODIES) {
     x.set(audio.map((s) => (peak > 0 ? (0.7 * s) / peak : 0)), pad.length);
     const file = join(body.name, `${String(n).padStart(3, "0")}.wav`);
     writeWav(join(out, file), x);
-    manifest.push({ ...w, body: body.name, file, seconds: x.length / FS });
+    manifest.push({ ...w, said, prefix, body: body.name, file, seconds: x.length / FS });
   });
 }
 writeFileSync(join(out, "manifest.json"), JSON.stringify(manifest, null, 1));

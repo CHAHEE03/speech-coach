@@ -88,8 +88,12 @@ def letters(text):
     return out
 
 
-def align(ref, hyp):
-    """Edit distance and the edits (substitution a→b, deletion a→'', insertion ''→b)."""
+def align(ref, hyp, span=None):
+    """Edit distance and the edits (substitution a→b, deletion a→'', insertion ''→b). With span
+    (start, end), only the edits of ref[start:end] count: an insertion belongs to the ref letter
+    before it, so one between the carrier and the word is the carrier's, one right after the word
+    is the word's (말 → 마르)."""
+    start, end = span or (0, len(ref))
     n, m = len(ref), len(hyp)
     d = [[0] * (m + 1) for _ in range(n + 1)]
     for i in range(n + 1):
@@ -100,18 +104,25 @@ def align(ref, hyp):
         for j in range(1, m + 1):
             d[i][j] = min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (ref[i - 1] != hyp[j - 1]))
     edits, i, j = [], n, m
+    mine = lambda k: start <= k < end  # noqa: E731
+    # on a tie a deletion goes first: walking back from the end, letters the recogniser left out
+    # are taken from the end (the carrier's "입니다"), not from the word
     while i or j:
-        if i and j and d[i][j] == d[i - 1][j - 1] + (ref[i - 1] != hyp[j - 1]):
-            if ref[i - 1] != hyp[j - 1]:
+        if i and d[i][j] == d[i - 1][j] + 1:
+            if mine(i - 1):
+                edits.append((ref[i - 1], ""))
+            i -= 1
+        elif i and j and ref[i - 1] == hyp[j - 1] and d[i][j] == d[i - 1][j - 1]:
+            i, j = i - 1, j - 1
+        elif i and j and d[i][j] == d[i - 1][j - 1] + 1:
+            if mine(i - 1):
                 edits.append((ref[i - 1], hyp[j - 1]))
             i, j = i - 1, j - 1
-        elif i and d[i][j] == d[i - 1][j] + 1:
-            edits.append((ref[i - 1], ""))
-            i -= 1
         else:
-            edits.append(("", hyp[j - 1]))
+            if mine(i - 1):
+                edits.append(("", hyp[j - 1]))
             j -= 1
-    return d[n][m], edits[::-1]
+    return len(edits), edits[::-1]
 
 
 def main():
@@ -129,9 +140,13 @@ def main():
     items = []
     for k, it in enumerate(manifest):
         heard = hear(load16k(os.path.join(out, it["file"])))
-        ref, hyp = letters(it["text"]), letters(heard)
-        dist, edits = align(ref, hyp)
-        items.append({**it, "heard": heard, "exact": hangul(heard) == hangul(it["text"]), "letters": len(ref), "errors": dist, "edits": edits})
+        # older manifests have no carrier sentence: the word was said alone
+        said, prefix = it.get("said", it["text"]), it.get("prefix", "")
+        ref, hyp = letters(said), letters(heard)
+        start = len(letters(prefix))
+        word = letters(it["text"])
+        dist, edits = align(ref, hyp, (start, start + len(word)))
+        items.append({**it, "heard": heard, "exact": dist == 0, "letters": len(word), "errors": dist, "edits": edits})
         print(f"\r{k + 1}/{len(manifest)}", end="", file=sys.stderr, flush=True)
     print(file=sys.stderr)
 
