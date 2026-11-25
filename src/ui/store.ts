@@ -65,7 +65,10 @@ export const useStore = create<State>((set, get) => ({
   lightAudio: false,
   overloaded: false,
   body: PRESETS.male,
-  source: { ...DEFAULT_SOURCE },
+  // a speaking voice's pitch wanders more than the engine's 5 cents (its default suits a held
+  // tone); 20 cents of slow drift takes the edge off the synthetic steadiness
+  // shortcut: by ear, not measured; tools/korean/render.ts still renders with the engine's 5
+  source: { ...DEFAULT_SOURCE, drift: 20 },
   artic: (() => {
     const tip = restTip(NEUTRAL.jaw, NEUTRAL.tbX, NEUTRAL.tbY);
     return { ...NEUTRAL, ttX: tip.x, ttY: tip.y };
