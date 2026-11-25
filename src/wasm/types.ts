@@ -165,6 +165,8 @@ export interface Segment {
   aspirated?: boolean;
   /** how long an aspirated stop aspirates (s); unset: 50 ms */
   vot?: number;
+  /** a spoken vowel's pitch relative to the phrase's (Korean phrase tones); an explicit f0 wins */
+  tone?: number;
   /** a vowel said with the velum lowered (IPA combining tilde) */
   nasalized?: boolean;
   /** a consonant with a secondary palatal gesture, the tongue body raised and fronted (IPA ʲ) */

@@ -273,6 +273,7 @@ pub struct TimedSegment<'a> {
     pub f0: Option<f64>,
     pub aspirated: Option<bool>,
     pub vot: Option<f64>,
+    pub tone: Option<f64>,
     pub nasalized: Option<bool>,
     pub palatalized: Option<bool>,
     pub breathy: Option<bool>,
@@ -298,6 +299,7 @@ struct Seg<'a> {
     glide_from: bool,
     aspirated: Option<bool>,
     vot: Option<f64>,
+    tone: Option<f64>,
     nasalized: Option<bool>,
     palatalized: Option<bool>,
     breathy: Option<bool>,
@@ -366,6 +368,7 @@ pub fn plan_utterance(input: &[Segment], o: &PlanOptions) -> Plan {
         f0: s.f0,
         aspirated: s.aspirated,
         vot: s.vot,
+        tone: s.tone,
         nasalized: s.nasalized,
         palatalized: s.palatalized,
         breathy: s.breathy,
@@ -398,10 +401,10 @@ pub fn plan_timed<'a>(input: impl Iterator<Item = TimedSegment<'a>>, o: &PlanOpt
             };
             for (i, p) in parts.iter().enumerate() {
                 let dur = base * shares.get(i).copied().unwrap_or(1.0);
-                segs.push(Seg { ipa: p, dur, stress: s.stress, f0: s.f0, def: None, vowel: None, glide_from: i > 0, aspirated: None, vot: None, nasalized: s.nasalized, palatalized: None, breathy: s.breathy, glide: None });
+                segs.push(Seg { ipa: p, dur, stress: s.stress, f0: s.f0, def: None, vowel: None, glide_from: i > 0, aspirated: None, vot: None, tone: s.tone, nasalized: s.nasalized, palatalized: None, breathy: s.breathy, glide: None });
             }
         } else {
-            segs.push(Seg { ipa: s.ipa, dur: s.dur, stress: s.stress, f0: s.f0, def: None, vowel: None, glide_from: false, aspirated: s.aspirated, vot: s.vot, nasalized: s.nasalized, palatalized: s.palatalized, breathy: s.breathy, glide: s.glide });
+            segs.push(Seg { ipa: s.ipa, dur: s.dur, stress: s.stress, f0: s.f0, def: None, vowel: None, glide_from: false, aspirated: s.aspirated, vot: s.vot, tone: s.tone, nasalized: s.nasalized, palatalized: s.palatalized, breathy: s.breathy, glide: s.glide });
         }
     }
     for s in segs.iter_mut() {
@@ -675,7 +678,9 @@ pub fn plan_timed<'a>(input: impl Iterator<Item = TimedSegment<'a>>, o: &PlanOpt
             let prog = (t0 - o.t0) / total;
             let decl = 1.0 - 0.1 * prog;
             let is_nuclear = i as isize == nuclear;
-            let acc = if s.stress == Some(1) {
+            let acc = if let Some(tone) = s.tone {
+                tone
+            } else if s.stress == Some(1) {
                 1.0 + (if is_nuclear { accent * 1.8 } else { accent })
             } else if s.stress == Some(2) {
                 1.0 + accent * 0.5

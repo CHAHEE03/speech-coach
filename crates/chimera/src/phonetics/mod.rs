@@ -46,6 +46,11 @@ pub struct Segment {
     /// decides it (Korean's lax stops aspirate briefly, its aspirated ones long); None: 50 ms
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub vot: Option<f64>,
+    /// a spoken vowel's pitch relative to the phrase's (1: the phrase pitch, before declination and
+    /// the final boundary), as a front end with phrase tones decides it (Korean's accentual
+    /// phrase); None: the stress accents. An explicit `f0` wins.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub tone: Option<f64>,
     /// a vowel said with the velum lowered (IPA combining tilde); None or false: oral
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub nasalized: Option<bool>,

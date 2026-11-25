@@ -273,6 +273,32 @@ fn coda_ipa(c: char) -> &'static str {
     }
 }
 
+/// Seoul Korean's accentual phrase tones, relative to the phrase pitch (Jun 2000, "K-ToBI"): T H L H,
+/// where the first tone T is high after an aspirated or tense consonant or ㅅ ㅆ ㅎ and low otherwise.
+/// A short phrase keeps the first and last tones (LH, LHH); a long one falls from its second
+/// syllable to the low before the final rise. One spoken word is taken as one phrase.
+/// shortcut: word = accentual phrase (particles and short words often join the next one), and the
+/// heights are by ear, not measured; tune them with a native speaker.
+const TONE_LOW: f64 = 0.9;
+const TONE_HIGH: f64 = 1.15;
+
+fn phrase_tones(n: usize, high_start: bool) -> Vec<f64> {
+    let first = if high_start { TONE_HIGH } else { TONE_LOW };
+    match n {
+        0 => vec![],
+        1 => vec![if high_start { TONE_HIGH } else { 1.0 }],
+        2 | 3 => (0..n).map(|i| if i == 0 { first } else { TONE_HIGH }).collect(),
+        _ => (0..n)
+            .map(|i| match i {
+                0 => first,
+                _ if i == n - 1 => TONE_HIGH,
+                // the second syllable's high, sloping down to the low on the second-to-last
+                _ => TONE_HIGH + (TONE_LOW - TONE_HIGH) * (i - 1) as f64 / (n - 3) as f64,
+            })
+            .collect(),
+    }
+}
+
 /// One word of Hangul (a run of blocks) → its sung syllables, the last marked as the word's end.
 pub fn word_syllables(word: &str) -> Vec<Syllable> {
     let mut blocks: Vec<Block> = compose(word).chars().filter(|&c| is_hangul(c)).map(decompose).collect();
@@ -283,8 +309,11 @@ pub fn word_syllables(word: &str) -> Vec<Syllable> {
     if let Some(last) = blocks.last_mut() {
         last.coda = simplify(&last.coda).map(neutral).into_iter().collect();
     }
+    let high_start = blocks.first().and_then(|b| b.onset).is_some_and(|o| "ㅋㅌㅍㅊㄲㄸㅃㅉㅅㅆㅎ".contains(o));
+    let tones = phrase_tones(blocks.len(), high_start);
     let mut out = Vec::with_capacity(blocks.len());
     for (i, b) in blocks.iter().enumerate() {
+        let tone = Some(tones[i]);
         let prev_coda = if i > 0 { blocks[i - 1].coda.last().copied() } else { None };
         let voiced_before = i > 0 && prev_coda.is_none_or(|c| matches!(c, 'ㄴ' | 'ㄹ' | 'ㅁ' | 'ㅇ'));
         let front = b.vowel == "i" && b.glide != "w" || b.glide == "j";
@@ -298,12 +327,12 @@ pub fn word_syllables(word: &str) -> Vec<Syllable> {
             .collect();
         // ㅢ after a consonant is plain [i] (희 → 히)
         if !b.glide.is_empty() && !(b.glide == "ɰ" && b.onset.is_some()) {
-            onset.push(Segment::new(b.glide));
+            onset.push(Segment { tone, ..Segment::new(b.glide) });
         }
         out.push(Syllable {
             text: b.text.to_string(),
             onset,
-            nucleus: Segment::new(b.vowel),
+            nucleus: Segment { tone, ..Segment::new(b.vowel) },
             coda: b.coda.iter().map(|&c| Segment::new(coda_ipa(c))).collect(),
             melisma: None,
             word_end: i + 1 == blocks.len(),
@@ -326,5 +355,28 @@ impl FrontEnd for Korean {
     }
     fn word(&self, word: &str) -> Vec<Syllable> {
         word_syllables(word)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn tones(word: &str) -> Vec<f64> {
+        word_syllables(word).iter().map(|s| s.nucleus.tone.unwrap()).collect()
+    }
+
+    #[test]
+    fn accentual_phrase_tones_follow_the_first_consonant() {
+        // low start (lax stop, sonorant, no consonant) vs high start (aspirated, tense, ㅅ ㅎ)
+        assert_eq!(tones("바람"), [TONE_LOW, TONE_HIGH]);
+        assert_eq!(tones("어머니"), [TONE_LOW, TONE_HIGH, TONE_HIGH]);
+        assert_eq!(tones("사랑해요"), [TONE_HIGH, TONE_HIGH, TONE_LOW, TONE_HIGH]);
+        assert_eq!(tones("빨래")[0], TONE_HIGH);
+        let t = tones("안녕하세요");
+        assert_eq!((t[0], t[1], t[3], t[4]), (TONE_LOW, TONE_HIGH, TONE_LOW, TONE_HIGH));
+        assert!(t[2] < TONE_HIGH && t[2] > TONE_LOW);
+        // a glide carries its vowel's tone
+        assert_eq!(word_syllables("여우")[0].onset[0].tone, Some(TONE_LOW));
     }
 }
