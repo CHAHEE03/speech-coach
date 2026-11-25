@@ -40,8 +40,10 @@ Whisper is a machine with a language model; it doesn't replace a Korean speaker'
 
 ## Other recognisers (`--model`)
 
-- `large-v3-turbo` (~1.6 GB, ~28 min on CPU): the better judge. Baseline engine: word accuracy
-  27.8%, letter error rate 52.9% (Whisper small heard the same audio as 15.6% / 61.3%).
+- `large-v3-turbo` (~1.6 GB, ~28 min on CPU): the better judge; compare with
+  `--against tools/korean/baseline-turbo.json`. Baseline engine: word accuracy 27.8%, letter error
+  rate 52.9% (Whisper small heard the same audio as 15.6% / 61.3%). With Korean intonation and
+  even vowel lengths (fd6aacf): 30.7% / **45.8%**; nasal words 36→20%, phrases 42→31%, stops 83→73%.
 - `w2v` (`kresnik/wav2vec2-large-xlsr-korean`, needs torch + transformers, 0.35 s a file): writes
   syllables with no language model. On the engine's audio it drops most syllables (81.8% letters
   wrong, mostly deletions), so it is no judge of the engine; it's here for real speakers' recordings,
