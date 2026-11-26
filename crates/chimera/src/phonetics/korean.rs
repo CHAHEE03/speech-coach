@@ -7,7 +7,8 @@
 //! obstruent coda.
 //!
 //! Stops say their own aspiration (Segment::aspirated): aspirated ㅋ ㅌ ㅍ ㅊ are aspirated, and
-//! tense ㄲ ㄸ ㅃ ㅉ are voiceless and unaspirated (the engine has no stiff "fortis" phonation yet).
+//! tense ㄲ ㄸ ㅃ ㅉ have longer closures, short VOT and stiff phonation at the vowel onset.
+//! ㅆ has longer frication with the same stiff release.
 //! Lax stops aspirate briefly word-initially and aspirated ones long (Segment::vot); lax stops are
 //! voiced between voiced sounds.
 //! ㅈ ㅊ ㅉ are alveolo-palatal [tɕ], and ㅅ ㅆ before [i] or [j] are [ɕ].
@@ -223,6 +224,8 @@ fn join(a: &mut Block, b: &mut Block) {
 /// onset times of about 90, 45 and 10 ms). Between voiced sounds a lax stop is voiced.
 const ASPIRATED_VOT: f64 = 0.09;
 const LAX_VOT: f64 = 0.045;
+const FORTIS_VOT: f64 = 0.01;
+const FORTIS_LENGTH: f64 = 1.75;
 
 /// An initial → its IPA, whether it aspirates, and for how long (s).
 fn onset_ipa(o: char, voiced_before: bool, front: bool, after_l: bool) -> (&'static str, Option<bool>, Option<f64>) {
@@ -234,7 +237,7 @@ fn onset_ipa(o: char, voiced_before: bool, front: bool, after_l: bool) -> (&'sta
         }
     };
     let aspirated = |ipa: &'static str| (ipa, Some(true), Some(ASPIRATED_VOT));
-    let tense = |ipa: &'static str| (ipa, Some(false), None);
+    let tense = |ipa: &'static str| (ipa, Some(false), Some(FORTIS_VOT));
     match o {
         'ㄱ' => lax("g", "k"),
         'ㅋ' => aspirated("k"),
@@ -248,8 +251,9 @@ fn onset_ipa(o: char, voiced_before: bool, front: bool, after_l: bool) -> (&'sta
         'ㅈ' => lax("dʑ", "tɕ"),
         'ㅊ' => aspirated("tɕ"),
         'ㅉ' => tense("tɕ"),
-        'ㅅ' | 'ㅆ' if front => ("ɕ", None, None),
-        'ㅅ' | 'ㅆ' => ("s", None, None),
+        'ㅆ' => tense(if front { "ɕ" } else { "s" }),
+        'ㅅ' if front => ("ɕ", None, None),
+        'ㅅ' => ("s", None, None),
         'ㅎ' if voiced_before => ("ɦ", None, None),
         'ㅎ' => ("h", None, None),
         'ㄴ' => ("n", None, None),
@@ -321,7 +325,8 @@ pub fn word_syllables(word: &str) -> Vec<Syllable> {
             .onset
             .map(|o| {
                 let (ipa, aspirated, vot) = onset_ipa(o, voiced_before, front, prev_coda == Some('ㄹ'));
-                Segment { aspirated, vot, ..Segment::new(ipa) }
+                let fortis = "ㄲㄸㅃㅆㅉ".contains(o).then_some(true);
+                Segment { aspirated, vot, fortis, length: fortis.map(|_| FORTIS_LENGTH), ..Segment::new(ipa) }
             })
             .into_iter()
             .collect();

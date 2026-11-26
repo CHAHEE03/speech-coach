@@ -272,6 +272,7 @@ pub struct TimedSegment<'a> {
     pub stress: Option<u8>,
     pub f0: Option<f64>,
     pub aspirated: Option<bool>,
+    pub fortis: Option<bool>,
     pub vot: Option<f64>,
     pub tone: Option<f64>,
     pub nasalized: Option<bool>,
@@ -298,6 +299,7 @@ struct Seg<'a> {
     vowel: Option<ArticPatch>,
     glide_from: bool,
     aspirated: Option<bool>,
+    fortis: Option<bool>,
     vot: Option<f64>,
     tone: Option<f64>,
     nasalized: Option<bool>,
@@ -367,6 +369,7 @@ pub fn plan_utterance(input: &[Segment], o: &PlanOptions) -> Plan {
         stress: s.stress,
         f0: s.f0,
         aspirated: s.aspirated,
+        fortis: s.fortis,
         vot: s.vot,
         tone: s.tone,
         nasalized: s.nasalized,
@@ -401,10 +404,10 @@ pub fn plan_timed<'a>(input: impl Iterator<Item = TimedSegment<'a>>, o: &PlanOpt
             };
             for (i, p) in parts.iter().enumerate() {
                 let dur = base * shares.get(i).copied().unwrap_or(1.0);
-                segs.push(Seg { ipa: p, dur, stress: s.stress, f0: s.f0, def: None, vowel: None, glide_from: i > 0, aspirated: None, vot: None, tone: s.tone, nasalized: s.nasalized, palatalized: None, breathy: s.breathy, glide: None });
+                segs.push(Seg { ipa: p, dur, stress: s.stress, f0: s.f0, def: None, vowel: None, glide_from: i > 0, aspirated: None, fortis: None, vot: None, tone: s.tone, nasalized: s.nasalized, palatalized: None, breathy: s.breathy, glide: None });
             }
         } else {
-            segs.push(Seg { ipa: s.ipa, dur: s.dur, stress: s.stress, f0: s.f0, def: None, vowel: None, glide_from: false, aspirated: s.aspirated, vot: s.vot, tone: s.tone, nasalized: s.nasalized, palatalized: s.palatalized, breathy: s.breathy, glide: s.glide });
+            segs.push(Seg { ipa: s.ipa, dur: s.dur, stress: s.stress, f0: s.f0, def: None, vowel: None, glide_from: false, aspirated: s.aspirated, fortis: s.fortis, vot: s.vot, tone: s.tone, nasalized: s.nasalized, palatalized: s.palatalized, breathy: s.breathy, glide: s.glide });
         }
     }
     for s in segs.iter_mut() {
@@ -483,6 +486,7 @@ pub fn plan_timed<'a>(input: impl Iterator<Item = TimedSegment<'a>>, o: &PlanOpt
         }
         let Some(def) = s.def.as_ref() else { continue };
         let next_vowel = i < segs.len() - 1 && segs[i + 1].vowel.is_some();
+        let fortis = s.fortis == Some(true);
         let prev_seg = if i > 0 { Some(&segs[i - 1]) } else { None };
         let mut add_oral = |tg: &ArticPatch, a: f64, b: f64, speed: f64, label: &str| oral_gestures_into(def, tg, a, b, speed, label, gestures);
         match def.manner {
@@ -550,6 +554,18 @@ pub fn plan_timed<'a>(input: impl Iterator<Item = TimedSegment<'a>>, o: &PlanOpt
             gestures.push(Gesture::new(t0, t1, 0.03, 0.03, 5.0, one(ControlKey::ABDUCTION, 0.1 * k2)).label("ɦ"));
         } else if def.glottal == Some(Glottal::Stop) {
             gestures.push(Gesture::new(t0, t1, 0.012, 0.015, 8.0, one(ControlKey::CLOSURE, 1.0)).label("ʔ"));
+        } else if fortis && def.voicing == Voicing::Voiceless {
+            // Close the folds by about 10 ms after the oral release. Keep the frication
+            // voiceless, but leave no long aspirated tail at the start of the vowel.
+            let lag = s.vot.unwrap_or(0.01) / rate;
+            let closing = 0.02 / rate;
+            let g = Gesture::new(t0 - 0.015, js_max(t0, t1 + lag - closing), 0.02, 0.02, 6.0, one(ControlKey::ABDUCTION, 0.3)).label("fortis release");
+            voiced_again = t1 + lag;
+            gestures.push(g);
+            // The phrase tone already supplies the high pitch; change only voice quality.
+            // Limit the pressed onset to the next voiced segment (including a medial glide).
+            let until = times.get(i + 1).map_or(t1, |n| js_min(t1 + 0.05 / rate, n.t1));
+            gestures.push(Gesture::new(t1 - 0.02 / rate, until, 0.015, 0.025, 4.0, one(ControlKey::TENSION, 0.85)).label("fortis tension"));
         } else if def.voicing == Voicing::Voiceless {
             if def.manner == Manner::Affricate && s.aspirated.is_none() && s.vot.is_none() {
                 // apart from the closure on, and together again as the frication ends: in an

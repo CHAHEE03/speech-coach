@@ -4,6 +4,7 @@
  */
 import { describe, expect, test } from "bun:test";
 import { initEngine } from "./harness.ts";
+import { CONTROL_KEYS, GESTURE_RECORD, writeGestures } from "../src/wasm/wire.ts";
 
 await initEngine();
 const { koreanPhrases, between, REFERENCE } = await import("../src/ui/korean.ts");
@@ -34,6 +35,15 @@ describe("koreanPhrases", () => {
 
   test("no Hangul, no phrases", () => {
     expect(koreanPhrases("   ")).toEqual([]);
+  });
+
+  test("fortis phonation crosses the wasm gesture record", () => {
+    const plan = planPhrases(koreanPhrases("아빠"), { body: male, t0: 0, rate: 1, f0: 110 });
+    const tense = plan.gestures.find((g) => g.targets.tension !== undefined)!;
+    expect(tense.targets.tension).toBeGreaterThan(0.5);
+    const buf = new ArrayBuffer(GESTURE_RECORD);
+    writeGestures(buf, 0, [tense], 1);
+    expect(new DataView(buf).getFloat64(64 + CONTROL_KEYS.indexOf("tension") * 8, true)).toBe(tense.targets.tension!);
   });
 });
 
