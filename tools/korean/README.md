@@ -52,7 +52,8 @@ Whisper is a machine with a language model; it doesn't replace a Korean speaker'
   run moves by about ±2 points. `baseline-carrier.json` (turbo, GPU, first engine 162d9b9): word
   accuracy 35.8%, letter error rate **41.2%**. Tones at half the first range (0.95/1.07) with even
   vowel lengths: 45.8% / **32.2%**; the full range (0.9/1.15) was 31.5% but put a rise on a final
-  nasal, heard as an extra syllable (강→강의, finals 54%; half: 37%), flat tones 35.6%.
+  nasal, heard as an extra syllable (강→강의, finals 54%; half: 37%), flat tones 35.6%. With tense
+  consonants (long closure, 10 ms VOT, pressed onset): 48.6% / **30.5%**, no tense→plain confusions left.
 - `w2v` (`kresnik/wav2vec2-large-xlsr-korean`, needs torch + transformers, 0.35 s a file): writes
   syllables with no language model. On the engine's audio it drops most syllables (81.8% letters
   wrong, mostly deletions), so it is no judge of the engine; it's here for real speakers' recordings,
