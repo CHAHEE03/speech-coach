@@ -44,13 +44,15 @@ Whisper is a machine with a language model; it doesn't replace a Korean speaker'
   `--against tools/korean/baseline-turbo.json`. Baseline engine: word accuracy 27.8%, letter error
   rate 52.9% (Whisper small heard the same audio as 15.6% / 61.3%). With Korean intonation and
   even vowel lengths (fd6aacf): 30.7% / **45.8%**; nasal words 36→20%, phrases 42→31%, stops 83→73%.
-- Carrier sentence (render.ts since this change): a word is said as "다음 단어는 ___ 입니다" and
-  only its letters are scored, so Whisper stops inventing a word for a lone syllable. Not
-  comparable with the scores above. `baseline-carrier.json` (turbo, first engine 162d9b9): word
-  accuracy 37.7%, letter error rate **39.4%**. Engine with intonation and rhythm (e061a9f): 38.7% /
-  **36.6%**; liquids 38→16%, vowels 49→43%, phrases 38→30%, but finals 21→46%: a final before
-  "입니다" is heard with an extra syllable (상→상임, 강→강의, 손→손님) and final ㄹ as ㅣ (불→구리).
-  The prefix still invites YouTube outros ("다음 영상에서 만나요") on a few renders.
+- Carrier sentence (render.ts): a word is said as "다음 단어는 ___입니다" (the copula spelt onto
+  the word, as Korean writes it) and only its letters are scored, so Whisper stops inventing a word
+  for a lone syllable. Not comparable with the scores above. score.py runs on an NVIDIA GPU when
+  there is one (`uv pip install nvidia-cublas-cu12 "nvidia-cudnn-cu12==9.*"` into the venv; ~4 min
+  instead of ~28). GPU and CPU transcripts differ a little: compare scores from the same device; a
+  run moves by about ±2 points. `baseline-carrier.json` (turbo, GPU, first engine 162d9b9): word
+  accuracy 35.8%, letter error rate **41.2%**. Tones at half the first range (0.95/1.07) with even
+  vowel lengths: 45.8% / **32.2%**; the full range (0.9/1.15) was 31.5% but put a rise on a final
+  nasal, heard as an extra syllable (강→강의, finals 54%; half: 37%), flat tones 35.6%.
 - `w2v` (`kresnik/wav2vec2-large-xlsr-korean`, needs torch + transformers, 0.35 s a file): writes
   syllables with no language model. On the engine's audio it drops most syllables (81.8% letters
   wrong, mostly deletions), so it is no judge of the engine; it's here for real speakers' recordings,

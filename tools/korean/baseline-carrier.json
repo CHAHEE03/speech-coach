@@ -2,90 +2,90 @@
  "model": "large-v3-turbo",
  "all": {
   "words": 212,
-  "word_accuracy": 37.7,
-  "letter_error_rate": 39.4
+  "word_accuracy": 35.8,
+  "letter_error_rate": 41.2
  },
  "by_body": {
   "female": {
    "words": 106,
-   "word_accuracy": 33.0,
-   "letter_error_rate": 42.6
+   "word_accuracy": 34.9,
+   "letter_error_rate": 41.9
   },
   "male": {
    "words": 106,
-   "word_accuracy": 42.5,
-   "letter_error_rate": 36.1
+   "word_accuracy": 36.8,
+   "letter_error_rate": 40.4
   }
  },
  "by_kind": {
   "coda": {
    "words": 28,
-   "word_accuracy": 67.9,
-   "letter_error_rate": 21.4
+   "word_accuracy": 53.6,
+   "letter_error_rate": 38.1
   },
   "fric": {
    "words": 18,
-   "word_accuracy": 38.9,
-   "letter_error_rate": 33.8
+   "word_accuracy": 33.3,
+   "letter_error_rate": 39.7
   },
   "liquid": {
    "words": 30,
-   "word_accuracy": 50.0,
-   "letter_error_rate": 38.3
+   "word_accuracy": 53.3,
+   "letter_error_rate": 32.8
   },
   "nasal": {
    "words": 12,
-   "word_accuracy": 58.3,
-   "letter_error_rate": 26.6
+   "word_accuracy": 41.7,
+   "letter_error_rate": 34.4
   },
   "phrase": {
    "words": 20,
-   "word_accuracy": 35.0,
-   "letter_error_rate": 38.2
+   "word_accuracy": 40.0,
+   "letter_error_rate": 34.9
   },
   "rule": {
    "words": 26,
-   "word_accuracy": 23.1,
-   "letter_error_rate": 48.5
+   "word_accuracy": 26.9,
+   "letter_error_rate": 52.3
   },
   "stop": {
    "words": 42,
    "word_accuracy": 23.8,
-   "letter_error_rate": 43.8
+   "letter_error_rate": 41.5
   },
   "vowel": {
    "words": 36,
    "word_accuracy": 25.0,
-   "letter_error_rate": 48.6
+   "letter_error_rate": 52.1
   }
  },
  "confusions": [
   [
-   "ㄱ→ㅋ",
+   "ㄹ_→ㄹ",
    12
   ],
   [
-   "ㅇ→∅",
-   9
-  ],
-  [
-   "ㄹ_→ㄹ",
-   7
+   "∅→ㅇ",
+   8
   ],
   [
    "ㅇ→ㅁ_",
-   7
-  ],
-  [
-   "ㅃ→ㅂ",
-   6
+   8
   ],
   [
    "ㄷ→ㅌ",
    6
   ],
   [
-   "∅→ㅇ",
+   "ㅣ→∅",
+   6
+  ],
+  [
+   "ㅓ→ㅏ",
+   6
+  ],
+  [
+   "ㅃ→ㅂ",
    5
   ],
   [
@@ -93,11 +93,15 @@
    5
   ],
   [
+   "ㄱ→ㄲ",
+   5
+  ],
+  [
    "ㅆ→ㅅ",
    5
   ],
   [
-   "ㅏ→∅",
+   "∅→ㄹ_",
    5
   ],
   [
@@ -105,59 +109,55 @@
    5
   ],
   [
+   "ㅇ→ㄴ",
+   5
+  ],
+  [
+   "ㅜ→ㅗ",
+   5
+  ],
+  [
+   "∅→ㅡ",
+   4
+  ],
+  [
+   "ㄹ_→ㅁ_",
+   4
+  ],
+  [
+   "ㄱ→ㅋ",
+   4
+  ],
+  [
+   "ㅇ→∅",
+   4
+  ],
+  [
+   "ㅜ→ㅓ",
+   4
+  ],
+  [
+   "ㄹ→ㄹ_",
+   4
+  ],
+  [
    "ㄷ→∅",
-   5
-  ],
-  [
-   "ㅏ→ㅐ",
-   5
-  ],
-  [
-   "ㅈ→ㅅ",
    4
   ],
   [
-   "∅→ㅋ",
+   "ㅣ→ㅌ",
    4
   ],
   [
-   "ㅕ→ㅣ",
+   "ㅏ→ㄱ_",
    4
   ],
   [
-   "ㅓ→ㅏ",
-   4
-  ],
-  [
-   "ㅓ→ㅌ",
-   4
-  ],
-  [
-   "ㅛ→ㅗ",
-   4
-  ],
-  [
-   "ㄹ_→∅",
+   "ㅌ→ㄷ",
    3
   ],
   [
-   "ㄱ_→ㅣ",
-   3
-  ],
-  [
-   "ㄲ→ㄱ",
-   3
-  ],
-  [
-   "ㅣ→ㅟ",
-   3
-  ],
-  [
-   "∅→ㄹ",
-   3
-  ],
-  [
-   "ㄹ_→ㅣ",
+   "ㅏ→ㅑ",
    3
   ]
  ]

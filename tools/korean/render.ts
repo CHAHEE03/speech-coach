@@ -52,11 +52,11 @@ function writeWav(path: string, x: Float32Array): void {
 }
 
 /** A word is said inside a fixed sentence, as intelligibility tests do: a lone syllable left the
- *  recogniser to invent a word ("부탁드립니다" for 덕). The next word starts with a vowel but is a
- *  separate word, so the engine keeps the test word's final as it is (no liaison across words).
- *  Phrases are said as they are. */
+ *  recogniser to invent a word ("부탁드립니다" for 덕). The copula is written onto the word as
+ *  Korean spells it ("상입니다"): spaced off, it was a phrase of its own whose low start right after
+ *  the final was heard as an extra syllable (상→상임). Phrases are said as they are. */
 const PREFIX = "다음 단어는 ";
-const SUFFIX = " 입니다";
+const SUFFIX = "입니다";
 
 const manifest: { kind: string; text: string; group: string; said: string; prefix: string; body: string; file: string; seconds: number }[] = [];
 for (const body of BODIES) {

@@ -60,9 +60,17 @@ def recogniser(name):
             return proc.batch_decode(logits.argmax(-1))[0].strip()
 
         return hear
+    import glob
+
+    import ctranslate2
+
+    # the CUDA DLLs pip installs (nvidia-cublas-cu12, nvidia-cudnn-cu12) aren't on PATH on Windows
+    for d in glob.glob(os.path.join(os.path.dirname(ctranslate2.__file__), "..", "nvidia", "*", "bin")):
+        os.environ["PATH"] = os.path.abspath(d) + os.pathsep + os.environ["PATH"]
     from faster_whisper import WhisperModel
 
-    model = WhisperModel(name, device="cpu", compute_type="int8")
+    gpu = ctranslate2.get_cuda_device_count() > 0
+    model = WhisperModel(name, device="cuda" if gpu else "cpu", compute_type="int8")
 
     def hear(x):
         segs, _ = model.transcribe(x, language="ko", beam_size=5, temperature=0.0, condition_on_previous_text=False, without_timestamps=True)

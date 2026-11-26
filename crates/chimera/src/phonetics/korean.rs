@@ -278,9 +278,10 @@ fn coda_ipa(c: char) -> &'static str {
 /// A short phrase keeps the first and last tones (LH, LHH); a long one falls from its second
 /// syllable to the low before the final rise. One spoken word is taken as one phrase.
 /// shortcut: word = accentual phrase (particles and short words often join the next one), and the
-/// heights are by ear, not measured; tune them with a native speaker.
-const TONE_LOW: f64 = 0.9;
-const TONE_HIGH: f64 = 1.15;
+/// heights are by ear, not measured; tune them with a native speaker. Half the first try's range
+/// (0.9/1.15), which put a rise on a final nasal that was heard as an extra syllable (강→강의).
+const TONE_LOW: f64 = 0.95;
+const TONE_HIGH: f64 = 1.07;
 
 fn phrase_tones(n: usize, high_start: bool) -> Vec<f64> {
     let first = if high_start { TONE_HIGH } else { TONE_LOW };
