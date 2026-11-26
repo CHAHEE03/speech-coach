@@ -398,20 +398,9 @@ impl HumanVoice {
         // the arytenoids through the closed phase (Södersten & Lindestad 1990). It leaks a little
         // air and damps the tract, which lifts H1 and the band below 500 Hz.
         g.chink = (0.008 + 0.03 * s.breathiness) * k2;
-        g.open_quotient = 0.78 - 0.36 * s.tension + body.open_phase;
         // Zhang 2016 (JASA 139, 1493, table II): closed quotient −0.0247 per degree of resting angle, in a 3D
         // model whose 0-4° open 0-10.1 mm². It's secondary there to the folds' thickness (hill-climb log, experiment 32)
         g.open_with_abduction = 0.98;
-        // The folds close along their length and depth over a return phase, not all at once, so
-        // a sung or spoken voice closes softly (0.22 at tension 0.55): an abrupt closure put
-        // 3-8 dB too much energy above 2 kHz. Pressing harder than that brings the abrupt closure
-        // back, up to 0.95 at full tension, so a pressed voice still has its edge. Brightness moves
-        // the closure from there, and shortens or lengthens the closing phase: 0 closes as softly as
-        // the model allows, 1 about as abruptly as a pressed voice.
-        let bright = s.brightness - DEFAULT_SOURCE.brightness;
-        let by_tension = 0.4 * s.tension + 1.375 * js_max(0.0, s.tension - 0.6);
-        g.closure_sharpness = clamp(by_tension + 0.8 * bright, 0.0, 1.0);
-        g.skew = 0.56 + 0.16 * s.tension + 0.2 * bright;
         g.fry = s.fry;
         // Jitter of a healthy, trained voice at the default roughness (0.1): about 0.45 %, well
         // under the clinical threshold (MDVP: 1.04 %).
@@ -422,6 +411,22 @@ impl HumanVoice {
         g.vibrato_rate = s.vibrato_rate;
         g.drift = s.drift;
         g.effort = effort_at(s.pressure);
+        self.apply_tension(s.tension);
+    }
+
+    fn apply_tension(&mut self, tension: f64) {
+        // The folds close along their length and depth over a return phase, not all at once, so
+        // a sung or spoken voice closes softly (0.22 at tension 0.55): an abrupt closure put
+        // 3-8 dB too much energy above 2 kHz. Pressing harder than that brings the abrupt closure
+        // back, up to 0.95 at full tension, so a pressed voice still has its edge. Brightness moves
+        // the closure from there, and shortens or lengthens the closing phase: 0 closes as softly as
+        // the model allows, 1 about as abruptly as a pressed voice.
+        let g = &mut self.glottis.params;
+        let bright = self.source.brightness - DEFAULT_SOURCE.brightness;
+        g.open_quotient = 0.78 - 0.36 * tension + self.airway.body.open_phase;
+        let by_tension = 0.4 * tension + 1.375 * js_max(0.0, tension - 0.6);
+        g.closure_sharpness = clamp(by_tension + 0.8 * bright, 0.0, 1.0);
+        g.skew = 0.56 + 0.16 * tension + 0.2 * bright;
     }
 
     /// Render `out.len()` output samples.
@@ -517,6 +522,7 @@ impl HumanVoice {
         let mut breath_act = 0.0;
         let mut breath_val = 0.0;
         let mut f0_target = self.source.f0;
+        let mut tension = self.source.tension;
         if self.score.size() > 0 {
             self.score.blend_all(t, &mut self.blend);
             let b = &self.blend;
@@ -533,6 +539,11 @@ impl HumanVoice {
             if br.weight > 0.0 {
                 breath_act = js_min(1.0, br.weight);
                 breath_val = br.value;
+            }
+            let tn = b[ControlKey::TENSION.index()];
+            if tn.weight > 0.0 {
+                let act = js_min(1.0, tn.weight / 2.0);
+                tension += (clamp(tn.value, 0.0, 1.0) - tension) * act;
             }
             let vb = b[ControlKey::VIBRATO.index()];
             gp.vibrato_depth = if vb.weight > 0.0 { (self.source.vibrato_depth * 0.05 + vb.value * vb.weight) / (0.05 + vb.weight) } else { self.source.vibrato_depth };
@@ -552,6 +563,7 @@ impl HumanVoice {
             self.glottis.params.closure = self.base_closure;
             self.score_f0 = None;
         }
+        self.apply_tension(tension);
         self.clock += dt;
         // contact constraint on the frame computed anyway; re-apply only if a correction was made
         let x = self.artic.x;

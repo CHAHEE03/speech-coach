@@ -1,6 +1,6 @@
 /** Engine types as the UI sees them (the JSON shapes of the Rust engine's serde types). */
 export type ArticKey = "jaw" | "tbX" | "tbY" | "ttX" | "ttY" | "ttCurl" | "root" | "lipAp" | "lipProt" | "lipWidth" | "labiodental" | "velum" | "larynx" | "epilarynx" | "ventricular" | "lateral" | "dorsum";
-export type SourceKey = "abduction" | "closure" | "breath" | "f0" | "vibrato";
+export type SourceKey = "abduction" | "closure" | "breath" | "f0" | "vibrato" | "tension";
 export type ControlKey = ArticKey | SourceKey;
 
 export interface Gesture {
@@ -163,6 +163,8 @@ export interface Segment {
   wordEnd?: boolean;
   /** a voiceless stop or affricate's aspiration as its front end decides it (unset: English's rule) */
   aspirated?: boolean;
+  /** stiff phonation at a fortis consonant release */
+  fortis?: boolean;
   /** how long an aspirated stop aspirates (s); unset: 50 ms */
   vot?: number;
   /** a spoken vowel's pitch relative to the phrase's (Korean phrase tones); an explicit f0 wins */

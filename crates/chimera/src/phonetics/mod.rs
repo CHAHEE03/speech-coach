@@ -42,6 +42,9 @@ pub struct Segment {
     /// before a vowel, not after /s/)
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub aspirated: Option<bool>,
+    /// fortis onset: stiff phonation through the release and into the following vowel
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub fortis: Option<bool>,
     /// how long an aspirated stop or affricate aspirates (voice onset time, s), as its front end
     /// decides it (Korean's lax stops aspirate briefly, its aspirated ones long); None: 50 ms
     #[serde(default, skip_serializing_if = "Option::is_none")]

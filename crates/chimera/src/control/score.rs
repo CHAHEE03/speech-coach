@@ -26,9 +26,11 @@ pub enum SourceKey {
     F0,
     /// vibrato depth (cents): singers let it bloom a few hundred ms into a held note
     Vibrato,
+    /// vocal fold tension, 0..1 (the performer's source tension when absent)
+    Tension,
 }
 
-pub const N_SOURCE: usize = 5;
+pub const N_SOURCE: usize = 6;
 /// Articulators then source channels.
 pub const N_CONTROL: usize = N_ARTIC + N_SOURCE;
 
@@ -39,7 +41,7 @@ pub enum ControlKey {
     Source(SourceKey),
 }
 
-pub const SOURCE_NAMES: [&str; N_SOURCE] = ["abduction", "closure", "breath", "f0", "vibrato"];
+pub const SOURCE_NAMES: [&str; N_SOURCE] = ["abduction", "closure", "breath", "f0", "vibrato", "tension"];
 
 impl ControlKey {
     pub const ABDUCTION: ControlKey = ControlKey::Source(SourceKey::Abduction);
@@ -47,6 +49,7 @@ impl ControlKey {
     pub const BREATH: ControlKey = ControlKey::Source(SourceKey::Breath);
     pub const F0: ControlKey = ControlKey::Source(SourceKey::F0);
     pub const VIBRATO: ControlKey = ControlKey::Source(SourceKey::Vibrato);
+    pub const TENSION: ControlKey = ControlKey::Source(SourceKey::Tension);
 
     #[inline]
     pub fn index(self) -> usize {
@@ -59,7 +62,7 @@ impl ControlKey {
         if i < N_ARTIC {
             ControlKey::Artic(ArticKey::ALL[i])
         } else {
-            ControlKey::Source([SourceKey::Abduction, SourceKey::Closure, SourceKey::Breath, SourceKey::F0, SourceKey::Vibrato][i - N_ARTIC])
+            ControlKey::Source([SourceKey::Abduction, SourceKey::Closure, SourceKey::Breath, SourceKey::F0, SourceKey::Vibrato, SourceKey::Tension][i - N_ARTIC])
         }
     }
     pub fn name(self) -> &'static str {

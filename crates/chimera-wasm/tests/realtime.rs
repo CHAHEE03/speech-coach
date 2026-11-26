@@ -39,6 +39,18 @@ fn write_step(rec: &mut [u8], id: &str) {
 }
 
 #[test]
+fn tension_and_labels_survive_the_gesture_record() {
+    use chimera::control::score::{ControlKey, Gesture, Targets};
+    let gesture = Gesture::new(0.1, 0.2, 0.01, 0.02, 4.0, Targets::default().with(ControlKey::TENSION, 0.85)).label("fortis tension");
+    let mut record = [0; GESTURE_RECORD];
+    write_gesture(&gesture, &mut record);
+    let decoded = read_gesture(&record);
+    assert_eq!(decoded.targets.get(ControlKey::TENSION), Some(0.85));
+    assert_eq!(decoded.label, gesture.label);
+    assert_eq!(decoded.t1, gesture.t1);
+}
+
+#[test]
 fn the_audio_thread_abi_does_not_allocate() {
     let h = engine_new(48000.0);
     // planned off the audio thread

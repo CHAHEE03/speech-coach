@@ -37,7 +37,7 @@ fn cdur(ipa: &str, body: BodyMix, k: f64) -> f64 {
 /// nasal codas); otherwise the phoneme's spoken length times `k`. Either is squeezed when a note is
 /// too short for it.
 fn consonants(segs: &[Segment], body: BodyMix, k: f64) -> Vec<Segment> {
-    segs.iter().map(|c| Segment { ipa: c.ipa.clone(), dur: Some(c.dur.unwrap_or_else(|| cdur(&c.ipa, body, k))), aspirated: c.aspirated, vot: c.vot, palatalized: c.palatalized, breathy: c.breathy, ..Default::default() }).collect()
+    segs.iter().map(|c| Segment { ipa: c.ipa.clone(), dur: Some(c.dur.unwrap_or_else(|| cdur(&c.ipa, body, k) * c.length.unwrap_or(1.0))), aspirated: c.aspirated, fortis: c.fortis, vot: c.vot, palatalized: c.palatalized, breathy: c.breathy, ..Default::default() }).collect()
 }
 
 /// A sung vowel (or one half of a diphthong) at the note's pitch, with the sound marks of the
@@ -453,6 +453,8 @@ pub const MAX_CLUSTER: usize = 8;
 /// A consonant held inline, with the marks of its [`Segment`] that sung consonants keep.
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct LiveConsonant {
+    pub fortis: Option<bool>,
+    pub length: Option<f64>,
     pub ipa: Label,
     /// the front end's duration (s), as [`Segment::dur`]
     pub dur: Option<f64>,
@@ -473,7 +475,7 @@ impl Cluster {
     fn from_segments(segs: &[Segment]) -> Cluster {
         let mut c = Cluster::default();
         for (slot, s) in c.cs.iter_mut().zip(segs) {
-            *slot = LiveConsonant { ipa: Label::new(&s.ipa), dur: s.dur, aspirated: s.aspirated, vot: s.vot, palatalized: s.palatalized, breathy: s.breathy };
+            *slot = LiveConsonant { ipa: Label::new(&s.ipa), dur: s.dur, aspirated: s.aspirated, fortis: s.fortis, length: s.length, vot: s.vot, palatalized: s.palatalized, breathy: s.breathy };
             c.n += 1;
         }
         c
@@ -541,7 +543,7 @@ type LiveSegments<'a> = SmallVec<[TimedSegment<'a>; super::planner::INLINE_SEGME
 fn push_consonants<'a>(out: &mut LiveSegments<'a>, c: &'a Cluster, body: BodyMix, k: f64) {
     for c in c.iter() {
         let ipa = c.ipa.as_str();
-        out.push(TimedSegment { ipa, dur: c.dur.unwrap_or_else(|| cdur(ipa, body, k)), aspirated: c.aspirated, vot: c.vot, palatalized: c.palatalized, breathy: c.breathy, ..Default::default() });
+        out.push(TimedSegment { ipa, dur: c.dur.unwrap_or_else(|| cdur(ipa, body, k) * c.length.unwrap_or(1.0)), aspirated: c.aspirated, fortis: c.fortis, vot: c.vot, palatalized: c.palatalized, breathy: c.breathy, ..Default::default() });
     }
 }
 
